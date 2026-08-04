@@ -5,14 +5,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1785854627,
-        "narHash": "sha256-g6kzkjFN7IKEEDgRAUwFjlkBpLeqqX/WnwtwAwOL3qw=",
-        "path": "/home/alexey/Projects/flutter-bridges/haskell-ffi-th",
-        "type": "path"
+        "lastModified": 1785861052,
+        "narHash": "sha256-nrYfPGaywJ2a8Et1icd2YNf9Xg5Hri61MkxkXZ4iCAY=",
+        "owner": "alexd1971",
+        "repo": "haskell-ffi-th",
+        "rev": "4c57f78b1f9f593474dcac9c2e3b2a31dd18ecf1",
+        "type": "github"
       },
       "original": {
-        "path": "/home/alexey/Projects/flutter-bridges/haskell-ffi-th",
-        "type": "path"
+        "owner": "alexd1971",
+        "repo": "haskell-ffi-th",
+        "type": "github"
       }
     },
     "nixpkgs": {
@@ -75,14 +78,17 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 0,
-        "narHash": "sha256-HL8xgGP0KGGe9vqFMduIXipcjJO0KMq23mzoF1Jny64=",
-        "path": "/home/alexey/Projects/flutter-bridges/th-cross",
-        "type": "path"
+        "lastModified": 1785855740,
+        "narHash": "sha256-W3EjBLD7S+pQ9KUa6lU7gg66xObiKOT9X0roPq3CVP4=",
+        "owner": "alexd1971",
+        "repo": "template-haskell-cross",
+        "rev": "0e75b65f840935b7304f9e7c1da4d338d41e297d",
+        "type": "github"
       },
       "original": {
-        "path": "/home/alexey/Projects/flutter-bridges/th-cross",
-        "type": "path"
+        "owner": "alexd1971",
+        "repo": "template-haskell-cross",
+        "type": "github"
       }
     }
   },

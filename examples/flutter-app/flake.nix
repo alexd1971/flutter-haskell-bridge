@@ -3,8 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    th-cross.url = "path:/home/alexey/Projects/flutter-bridges/th-cross";
-    haskell-ffi-th.url = "path:/home/alexey/Projects/flutter-bridges/haskell-ffi-th";
+    th-cross.url = "github:alexd1971/template-haskell-cross";
+    haskell-ffi-th.url = "github:alexd1971/haskell-ffi-th";
   };
 
   outputs = { self, nixpkgs, th-cross, haskell-ffi-th, ... }:
