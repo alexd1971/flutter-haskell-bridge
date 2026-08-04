@@ -1,0 +1,19 @@
+name: flutter_haskell_plugin
+description: Flutter plugin API backed by a cross-compiled Haskell library.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  ffi: ^2.1.0
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true

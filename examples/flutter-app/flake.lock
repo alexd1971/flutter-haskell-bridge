@@ -1,0 +1,91 @@
+{
+  "nodes": {
+    "haskell-ffi-th": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1785854627,
+        "narHash": "sha256-g6kzkjFN7IKEEDgRAUwFjlkBpLeqqX/WnwtwAwOL3qw=",
+        "path": "/home/alexey/Projects/flutter-bridges/haskell-ffi-th",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/alexey/Projects/flutter-bridges/haskell-ffi-th",
+        "type": "path"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1785828668,
+        "narHash": "sha256-8fsyqeO+mJqvIzeO4xIpgJe/f7MTbbVTEC6RT6WSXNs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e72e4f299401a3689d4b3d5fc6496b11db7064eb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1785571196,
+        "narHash": "sha256-KoTsyMQqnXQZq8deCEnu4QkyldkwH/bpMMhUcfMdGIw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "148bab9c1c3c53136ecb44a6ea356a0ed5b39b06",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1784120854,
+        "narHash": "sha256-KesHgItiZPgGX740axSiQLcIQ8D24MDqNpkKYWIek8k=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "753cc8a3a87467296ddd1fa93f0cc3e81120ee46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "haskell-ffi-th": "haskell-ffi-th",
+        "nixpkgs": "nixpkgs_2",
+        "th-cross": "th-cross"
+      }
+    },
+    "th-cross": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 0,
+        "narHash": "sha256-HL8xgGP0KGGe9vqFMduIXipcjJO0KMq23mzoF1Jny64=",
+        "path": "/home/alexey/Projects/flutter-bridges/th-cross",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/alexey/Projects/flutter-bridges/th-cross",
+        "type": "path"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
