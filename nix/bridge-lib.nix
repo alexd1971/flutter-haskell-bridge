@@ -159,7 +159,7 @@ in
               preConfigure = ''
                 export HASKELL_FFI_MANIFEST="${placeholder "out"}/${manifestFile}"
                 export HASKELL_FFI_LIBRARY_NAME="${name}"
-                mkdir -p "$(dirname \"$HASKELL_FFI_MANIFEST\")"
+                mkdir -p "$(dirname "$HASKELL_FFI_MANIFEST")"
               '';
             };
         };
