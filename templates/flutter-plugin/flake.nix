@@ -30,9 +30,12 @@
       importNixpkgs = system:
         import nixpkgs {
           inherit system;
-          # Android SDK/NDK packages contain unfree source archives whose
-          # package names do not consistently share an `android-sdk-*` prefix.
-          config.allowUnfree = true;
+          config = {
+            # Android SDK/NDK packages contain unfree source archives whose
+            # package names do not consistently share an `android-sdk-*` prefix.
+            allowUnfree = true;
+            android_sdk.accept_license = true;
+          };
         };
     in
     {
@@ -123,11 +126,15 @@
       devShells = forAllSystems (system:
         let
           pkgs = importNixpkgs system;
+          tools = flutter-haskell-bridge.lib.${system}.tools;
+          flutterSdk = tools.flutterSdk;
+          androidSdk = tools.androidSdk;
         in
         {
           default = pkgs.mkShell {
             packages = [
-              pkgs.android-tools
+              flutterSdk.flutter
+              flutterSdk.flutterSdkPath
               pkgs.cabal-install
               pkgs.cabal2nix
               pkgs.jdk17
@@ -135,27 +142,32 @@
             ];
 
             shellHook = ''
-              if ! command -v flutter >/dev/null 2>&1; then
-                echo "Flutter SDK is not on PATH. Use a normal mutable Flutter checkout, not nixpkgs' read-only Flutter package."
-              elif [ "$(readlink -f "$(command -v flutter)")" != "''${FLUTTER_SDK:-}" ] \
-                && readlink -f "$(command -v flutter)" | grep -q '^/nix/store/'; then
-                echo "Flutter on PATH comes from /nix/store. flutter run needs a mutable Flutter SDK checkout."
-                echo "Put your Flutter checkout bin directory before Nix paths, for example: export PATH=/home/alexey/develop/flutter/bin:\$PATH"
-              fi
+              # Materialise the writable Flutter SDK farm.
+              flutter_sdk_path="$(${flutterSdk.flutterSdkPath}/bin/flutter-sdk-path)"
 
-              cat <<'EOF'
-Flutter Haskell plugin shell
+              export ANDROID_HOME="${androidSdk.sdkRoot}"
+              export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
 
-Common commands:
-  nix run .#regen-haskell-nix
-  nix run .#sync-haskell-artifacts
-  cd flutter_haskell_plugin
-  flutter pub get
+              cat > flutter_haskell_plugin/android/local.properties <<EOF
+              sdk.dir=${androidSdk.sdkRoot}
+              flutter.sdk=$flutter_sdk_path
+              flutter.buildMode=debug
+              flutter.versionName=1.0.0
+              flutter.versionCode=1
+              EOF
 
-Android SDK/device configuration is still owned by Flutter/Android tooling.
-Use a mutable Flutter SDK checkout for `flutter run`; Gradle cannot use the
-read-only Flutter SDK from the Nix store as an included build.
-EOF
+              cat <<EOF
+              Flutter Haskell plugin shell
+
+              Common commands:
+                nix run .#regen-haskell-nix
+                nix run .#sync-haskell-artifacts
+                cd flutter_haskell_plugin
+                flutter pub get
+
+              Flutter SDK:  $flutter_sdk_path
+              Android SDK:  ${androidSdk.sdkRoot}
+              EOF
             '';
           };
         });

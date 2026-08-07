@@ -17,7 +17,10 @@
           system = buildSystem;
           # Android SDK/NDK packages contain unfree source archives whose
           # package names do not consistently share an `android-sdk-*` prefix.
-          config.allowUnfree = true;
+          config = {
+            allowUnfree = true;
+            android_sdk.accept_license = true;
+          };
         };
 
       forEachBuildSystem = mkOutputs:
@@ -50,7 +53,9 @@
           };
         };
 
-        lib = bridgeLib;
+        lib = bridgeLib // {
+          inherit tools;
+        };
       })
     // {
       templates = {

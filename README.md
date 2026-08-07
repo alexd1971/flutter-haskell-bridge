@@ -15,6 +15,10 @@ The flake exposes:
 
 - `lib.${system}.buildHaskellLib`: builds Android JNI artifacts from a Haskell
   package compiled by `template-haskell-cross`.
+- `lib.${system}.tools`: a Flutter SDK wrapper that materialises a writable
+  symlink farm on first use (so Gradle can use the read-only Nix store SDK),
+  plus a read-only reference to a Nix-composed Android SDK. See
+  `docs/nix-managed-sdks.md`.
 - `packages.${system}.dart-ffi-generator`: small generator for Dart FFI wrapper
   code from a JSON FFI manifest.
 - `templates.flutter-app`: Flutter app scaffold with an embedded bridge package,
@@ -23,6 +27,10 @@ The flake exposes:
   `haskell-lib/` package.
 
 The default template is `flutter-app`.
+
+Both templates and the `tic-tac-toe-hs` example provide `devShells.default`
+that supply Flutter and Android SDKs from Nix — no manual SDK installation is
+required.
 
 ## Local Development
 
