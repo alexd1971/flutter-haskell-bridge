@@ -8,8 +8,8 @@ constructor before invoking any `foreign export`:
 
 ```dart
 class HaskellApi {
-  HaskellApi([String libraryPath = 'libtic_tac_toe.so'])
-      : _library = ffi.DynamicLibrary.open(libraryPath) {
+  HaskellApi([String? libraryPath])
+      : _library = ffi.DynamicLibrary.open(libraryPath ?? _defaultLibraryPath()) {
     _initializeRuntime();
   }
 

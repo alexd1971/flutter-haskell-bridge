@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1785861052,
-        "narHash": "sha256-nrYfPGaywJ2a8Et1icd2YNf9Xg5Hri61MkxkXZ4iCAY=",
+        "lastModified": 1786132922,
+        "narHash": "sha256-N30HPoKBY10eCSBjV3mh+hMpvQILOI+iLclysGuhLwg=",
         "owner": "alexd1971",
         "repo": "haskell-ffi-th",
-        "rev": "4c57f78b1f9f593474dcac9c2e3b2a31dd18ecf1",
+        "rev": "de6b0466c9a9395e855159aca8cce423c5320ba8",
         "type": "github"
       },
       "original": {

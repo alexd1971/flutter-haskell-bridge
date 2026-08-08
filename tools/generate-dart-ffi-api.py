@@ -186,16 +186,25 @@ def render(spec):
 // Do not edit manually.
 
 import 'dart:ffi' as ffi;
+import 'dart:io' as io;
 
 class {class_name} {{
-  {class_name}([String libraryPath = 'lib{library_name}.so'])
-      : _library = ffi.DynamicLibrary.open(libraryPath) {{
+  {class_name}([String? libraryPath])
+      : _library = ffi.DynamicLibrary.open(libraryPath ?? _defaultLibraryPath()) {{
     _initializeRuntime();
   }}
 
   static const libraryName = '{library_name}';
+  static const libraryFileName = 'lib{library_name}.so';
 
   final ffi.DynamicLibrary _library;
+
+  static String _defaultLibraryPath() {{
+    if (io.Platform.isLinux) {{
+      return '${{io.File(io.Platform.resolvedExecutable).parent.path}}/lib/$libraryFileName';
+    }}
+    return libraryFileName;
+  }}
 
   late final _initializeRuntime = _library
       .lookupFunction<ffi.Void Function(), void Function()>('{runtime_init_symbol}');

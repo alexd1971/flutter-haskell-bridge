@@ -27,7 +27,8 @@ let
 
     # Rebuild the farm when the store path changes or on first use.
     marker="$sdk_dir/.nix-flutter-stamp"
-    if [ ! -f "$marker" ] || [ "$(<"$marker")" != "$nix_flutter" ]; then
+    marker_value="$nix_flutter:2"
+    if [ ! -f "$marker" ] || [ "$(<"$marker")" != "$marker_value" ]; then
       rm -rf "$sdk_dir"
       mkdir -p "$sdk_dir"
 
@@ -48,6 +49,7 @@ let
         fi
       done
 
+      shopt -s dotglob nullglob
       for item in "$nix_flutter"/packages/flutter_tools/*; do
         name="$(basename "$item")"
         if [ "$name" != "gradle" ]; then
@@ -57,13 +59,12 @@ let
 
       # ``gradle`` is a real directory so Gradle can write ``.gradle`` and
       # ``build`` inside it.  Individual files remain symlinks to the store.
-      shopt -s dotglob nullglob
       for item in "$nix_flutter"/packages/flutter_tools/gradle/*; do
         ln -s "$item" "$sdk_dir/packages/flutter_tools/gradle/$(basename "$item")"
       done
       shopt -u dotglob nullglob
 
-      printf '%s' "$nix_flutter" > "$marker"
+      printf '%s' "$marker_value" > "$marker"
     fi
 
     export FLUTTER_ROOT="$sdk_dir"

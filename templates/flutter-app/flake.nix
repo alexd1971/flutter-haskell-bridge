@@ -37,91 +37,30 @@
             android_sdk.accept_license = true;
           };
         };
+      artifactOutputsFor = system:
+        let
+          pkgs = importNixpkgs system;
+        in
+        import (flutter-haskell-bridge + /nix/flutter-artifacts.nix) {
+          inherit pkgs ghcVersion androidAbi;
+          haskellFfiTh = haskell-ffi-th;
+          bridgeLib = flutter-haskell-bridge.lib.${system};
+          dartFfiGenerator = flutter-haskell-bridge.packages.${system}.dart-ffi-generator;
+          androidTarget = target;
+          ffiLibraryName = "flutter_haskell_bridge";
+          flutterPackageDir = "bridge";
+          packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+          localHaskellPackages = {
+            haskell-lib = {
+              packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
+            };
+          };
+        };
     in
     {
-      packages = forAllSystems (system:
-        let
-          pkgs = importNixpkgs system;
-          packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
-        in
-        {
-          android-jni-libs =
-            flutter-haskell-bridge.lib.${system}.buildHaskellLib {
-              inherit ghcVersion target androidAbi packageFile;
-              name = "flutter_haskell_bridge";
-              manifestFile = "ffi-manifest.json";
-              localPackages = {
-                haskell-ffi-th = {
-                  packageFile = haskell-ffi-th + /nix/generated/haskell-ffi-th.nix;
-                };
-                haskell-lib = {
-                  packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
-                };
-              };
-            };
+      packages = forAllSystems (system: (artifactOutputsFor system).packages);
 
-          dart-api =
-            pkgs.runCommand "flutter-haskell-bridge-dart-api" { } ''
-              mkdir -p "$out"
-              ${flutter-haskell-bridge.packages.${system}.dart-ffi-generator}/bin/flutter-haskell-generate-dart-ffi \
-                --spec ${self.packages.${system}.android-jni-libs}/ffi-manifest.json \
-                --out "$out/flutter_haskell_api.dart"
-            '';
-
-          default = self.packages.${system}.android-jni-libs;
-        });
-
-      apps = forAllSystems (system:
-        let
-          pkgs = importNixpkgs system;
-          regenScript =
-            pkgs.writeShellScriptBin "regen-haskell-nix" ''
-              set -euo pipefail
-              regenerate() {
-                local package="$1"
-                mkdir -p "$package/nix/generated"
-                (
-                  cd "$package/nix/generated"
-                  ${pkgs.cabal2nix}/bin/cabal2nix ../.. > "$(basename "$package").nix"
-                )
-              }
-
-              regenerate haskell-lib
-              regenerate haskell-ffi
-            '';
-          syncScript =
-            pkgs.writeShellScriptBin "sync-haskell-artifacts" ''
-              set -euo pipefail
-
-              ${regenScript}/bin/regen-haskell-nix
-
-              jni_libs="$(nix build --no-link --print-out-paths .#android-jni-libs)"
-              dart_api="$(nix build --no-link --print-out-paths .#dart-api)"
-
-              target_dir="bridge/android/src/main/jniLibs/${androidAbi}"
-              if [ -e "$target_dir" ]; then
-                chmod -R u+w "$target_dir"
-                rm -rf "$target_dir"
-              fi
-              mkdir -p "$(dirname "$target_dir")"
-              cp -R "$jni_libs/${androidAbi}" "$target_dir"
-              chmod -R u+w "$target_dir"
-
-              cp "$dart_api/flutter_haskell_api.dart" \
-                bridge/lib/flutter_haskell_api.dart
-            '';
-        in
-        {
-          regen-haskell-nix = {
-            type = "app";
-            program = "${regenScript}/bin/regen-haskell-nix";
-          };
-
-          sync-haskell-artifacts = {
-            type = "app";
-            program = "${syncScript}/bin/sync-haskell-artifacts";
-          };
-        });
+      apps = forAllSystems (system: (artifactOutputsFor system).apps);
 
       devShells = forAllSystems (system:
         let
@@ -148,20 +87,31 @@
               export ANDROID_HOME="${androidSdk.sdkRoot}"
               export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
 
-              cat > android/local.properties <<EOF
-              sdk.dir=${androidSdk.sdkRoot}
-              flutter.sdk=$flutter_sdk_path
-              flutter.buildMode=debug
-              flutter.versionName=1.0.0
-              flutter.versionCode=1
-              EOF
+              if [ -d app/android ]; then
+                local_properties=app/android/local.properties
+              elif [ -d android ]; then
+                local_properties=android/local.properties
+              else
+                local_properties=
+              fi
+
+              if [ -n "$local_properties" ]; then
+                cat > "$local_properties" <<EOF
+sdk.dir=${androidSdk.sdkRoot}
+flutter.sdk=$flutter_sdk_path
+flutter.buildMode=debug
+flutter.versionName=1.0.0
+flutter.versionCode=1
+EOF
+              fi
 
               cat <<EOF
               Flutter Haskell app shell
 
               Common commands:
                 nix run .#regen-haskell-nix
-                nix run .#sync-haskell-artifacts
+                nix run .#bundle-libs
+                cd app
                 flutter pub get
                 flutter run
 
