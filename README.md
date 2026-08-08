@@ -38,7 +38,7 @@ The normal downstream edit/build loop is:
 
 1. Implement or depend on Haskell domain code. The templates include a local
    `haskell-lib/` only as a starting point; a real project can use any external
-   Haskell library instead.
+   Haskell library instead and wire it through `haskell-packages.nix`.
 2. Export the FFI surface from `haskell-ffi/`. The adapter can use
    [`haskell-ffi-th`](https://github.com/alexd1971/haskell-ffi-th) to declare
    exported symbols and generate the FFI manifest consumed by the Dart API
@@ -98,6 +98,22 @@ flutter analyze
 downstream project should be buildable by ordinary Flutter tooling without Nix,
 commit those copied artifacts together with the generated Dart API.
 
+### Haskell library dependencies
+
+The `haskell-ffi/` package is the FFI adapter. It can depend on Haskell domain
+libraries in several ways:
+
+- Hackage/package-set dependency: add it only to `haskell-ffi.cabal`. No
+  `haskell-packages.nix` entry is needed if the selected GHC package set already
+  provides it.
+- Local package: add it to `haskell-packages.nix` with a generated
+  `packageFile`. The attribute name must match the cabal dependency name.
+- External package with a pre-generated Nix expression: add it to
+  `haskell-packages.nix` with `regenerate = false`, so `regen-haskell-nix` does
+  not try to run `cabal2nix` on a local directory.
+
+The templates include `haskell-lib/` only as a local example.
+
 Template flake inputs are GitHub inputs:
 
 - `github:NixOS/nixpkgs`
@@ -120,10 +136,10 @@ The flake exposes:
 - `packages.${system}.dart-ffi-generator`: small generator for Dart FFI wrapper
   code from a JSON FFI manifest.
 - `templates.flutter-app`: Flutter app scaffold with an embedded bridge package,
-  example local `haskell-lib/` package, and local `haskell-ffi/` adapter
-  package.
+  app-specific `haskell-packages.nix`, example local `haskell-lib/` package,
+  and local `haskell-ffi/` adapter package.
 - `templates.flutter-plugin`: standalone Flutter plugin scaffold with an
-  example local `haskell-lib/` package.
+  app-specific `haskell-packages.nix` and example local `haskell-lib/` package.
 
 The default template is `flutter-app`.
 

@@ -37,9 +37,11 @@
           pkgs = importNixpkgs system;
           bridge = import ../../nix/bridge-lib.nix { inherit pkgs th-cross system; };
           tools = import ../../nix/tools.nix { inherit pkgs; };
+          haskellPackages = import ./haskell-packages.nix;
         in
         import ../../nix/flutter-artifacts.nix {
           inherit pkgs ghcVersion androidAbi;
+          inherit (haskellPackages) localHaskellPackages;
           haskellFfiTh = haskell-ffi-th;
           bridgeLib = bridge;
           dartFfiGenerator = tools.dartFfiGenerator;
@@ -47,11 +49,6 @@
           ffiLibraryName = "flutter_haskell_app";
           flutterPackageDir = "flutter-haskell-bridge";
           packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
-          localHaskellPackages = {
-            haskell-lib = {
-              packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
-            };
-          };
         };
     in
     {

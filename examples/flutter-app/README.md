@@ -7,16 +7,25 @@ Layout:
 ```text
 flutter-app/              Flutter application
 flutter-haskell-bridge/   Flutter package with Dart FFI and Android JNI libraries
+haskell-packages.nix      Application-specific Haskell package wiring
 haskell-ffi/              Application FFI adapter and TH export declarations
   cbits/                  RTS initialization shim
 haskell-lib/              Example reusable Haskell domain library
   src/Lib.hs              Haskell implementation API
 ```
 
-This example keeps the domain code in local `haskell-lib/`; downstream
-applications can use an external Haskell library instead. The `haskell-ffi/`
-adapter uses `haskell-ffi-th` to declare exported symbols and produce the FFI
-manifest used for Dart API generation.
+This example keeps the domain code in local `haskell-lib/` and wires it through
+`haskell-packages.nix`; downstream applications can use an external Haskell
+library instead. The `haskell-ffi/` adapter uses `haskell-ffi-th` to declare
+exported symbols and produce the FFI manifest used for Dart API generation.
+
+`haskell-ffi/` can depend on Haskell libraries in three common ways:
+
+- Hackage/package-set dependency: add it only to `haskell-ffi.cabal`.
+- Local package: add it to `haskell-packages.nix` with a generated
+  `packageFile`; this example uses that for `haskell-lib`.
+- External package with a pre-generated Nix expression: add it to
+  `haskell-packages.nix` with `regenerate = false`.
 
 Bundle generated libraries into the Flutter layout:
 

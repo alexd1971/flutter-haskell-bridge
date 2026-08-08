@@ -1,4 +1,4 @@
-{ base, lib, mkDerivation }:
+{ mkDerivation, base, lib }:
 mkDerivation {
   pname = "haskell-lib";
   version = "0.1.0.0";

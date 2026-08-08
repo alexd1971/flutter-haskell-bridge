@@ -40,9 +40,11 @@
       artifactOutputsFor = system:
         let
           pkgs = importNixpkgs system;
+          haskellPackages = import ./haskell-packages.nix;
         in
         import (flutter-haskell-bridge + /nix/flutter-artifacts.nix) {
           inherit pkgs ghcVersion androidAbi;
+          inherit (haskellPackages) localHaskellPackages;
           haskellFfiTh = haskell-ffi-th;
           bridgeLib = flutter-haskell-bridge.lib.${system};
           dartFfiGenerator = flutter-haskell-bridge.packages.${system}.dart-ffi-generator;
@@ -50,11 +52,6 @@
           ffiLibraryName = "flutter_haskell_bridge";
           flutterPackageDir = "flutter-haskell-bridge";
           packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
-          localHaskellPackages = {
-            haskell-lib = {
-              packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
-            };
-          };
         };
     in
     {

@@ -12,17 +12,32 @@ Layout:
 ```text
 haskell-lib/              Reusable Haskell domain library
 haskell-ffi/              Plugin FFI adapter and TH export declarations
-flutter_plugin/   Flutter plugin package that owns the Dart API
+haskell-packages.nix      Plugin-specific Haskell package wiring
+flutter_plugin/           Flutter plugin package that owns the Dart API
 ```
 
 `haskell-lib/` is only the template's local example domain package. A real
-plugin can depend on any external Haskell library instead and wire it into the
-flake as a local or source-repository package dependency.
+plugin can depend on any external Haskell library instead. Put plugin-specific
+Haskell package wiring in `haskell-packages.nix`; the main `flake.nix` is
+intended to stay generic.
+
+### Haskell library dependencies
+
+The `haskell-ffi/` package is the FFI adapter. It can depend on Haskell domain
+libraries in several ways:
+
+- Hackage/package-set dependency: add it only to `haskell-ffi.cabal`. No
+  `haskell-packages.nix` entry is needed if the selected GHC package set already
+  provides it.
+- Local package: add it to `haskell-packages.nix` with a generated
+  `packageFile`. The attribute name must match the cabal dependency name. For
+  example, the template's `haskell-lib` entry points to
+  `./haskell-lib/nix/generated/haskell-lib.nix`.
+- External package with a pre-generated Nix expression: add it to
+  `haskell-packages.nix` with `regenerate = false`, so `regen-haskell-nix` does
+  not try to run `cabal2nix` on a local directory.
 
 ## Usage Workflow
-
-The flake inputs are GitHub inputs (`nixpkgs`, `template-haskell-cross`,
-`haskell-ffi-th`, and `flutter-haskell-bridge`).
 
 Enter the development shell first:
 
@@ -32,8 +47,8 @@ nix develop
 
 The normal edit/build loop is:
 
-1. Put reusable Haskell logic in `haskell-lib/`, or depend on an external
-   Haskell library.
+1. Put reusable Haskell logic in `haskell-lib/`, or replace it with another
+   local/external Haskell library in `haskell-packages.nix`.
 2. Define exported FFI functions in `haskell-ffi/`. The adapter can use
    [`haskell-ffi-th`](https://github.com/alexd1971/haskell-ffi-th) to declare
    exported symbols and generate the FFI manifest consumed by the Dart API

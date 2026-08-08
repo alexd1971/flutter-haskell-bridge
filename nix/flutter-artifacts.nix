@@ -7,12 +7,25 @@
 , androidAbi ? "arm64-v8a"
 , ffiLibraryName
 , flutterPackageDir
+, packageDir ? "haskell-ffi"
 , packageFile
 , localHaskellPackages ? { }
-, regeneratePackages ? [
-    "haskell-lib"
-    "haskell-ffi"
-  ]
+, regeneratePackages ?
+    (pkgs.lib.mapAttrsToList
+      (packageName: localPackage: {
+        packageDir = localPackage.packageDir or packageName;
+        outputFile =
+          localPackage.outputFile or (builtins.baseNameOf localPackage.packageFile);
+      })
+      (pkgs.lib.filterAttrs
+        (_: localPackage: localPackage.regenerate or true)
+        localHaskellPackages))
+    ++ [
+      {
+        inherit packageDir;
+        outputFile = builtins.baseNameOf packageFile;
+      }
+    ]
 , dartApiFile ? "flutter_haskell_api.dart"
 }:
 
