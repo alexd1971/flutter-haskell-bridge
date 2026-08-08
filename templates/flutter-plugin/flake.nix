@@ -48,7 +48,7 @@
           dartFfiGenerator = flutter-haskell-bridge.packages.${system}.dart-ffi-generator;
           androidTarget = target;
           ffiLibraryName = "flutter_haskell_plugin";
-          flutterPackageDir = "flutter_haskell_plugin";
+          flutterPackageDir = "flutter_plugin";
           packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
           localHaskellPackages = {
             haskell-lib = {
@@ -87,7 +87,7 @@
               export ANDROID_HOME="${androidSdk.sdkRoot}"
               export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
 
-              cat > flutter_haskell_plugin/android/local.properties <<EOF
+              cat > flutter_plugin/android/local.properties <<EOF
               sdk.dir=${androidSdk.sdkRoot}
               flutter.sdk=$flutter_sdk_path
               flutter.buildMode=debug
@@ -101,7 +101,7 @@
               Common commands:
                 nix run .#regen-haskell-nix
                 nix run .#bundle-libs
-                cd flutter_haskell_plugin
+                cd flutter_plugin
                 flutter pub get
 
               Flutter SDK:  $flutter_sdk_path

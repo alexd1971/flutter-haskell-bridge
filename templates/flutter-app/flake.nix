@@ -48,7 +48,7 @@
           dartFfiGenerator = flutter-haskell-bridge.packages.${system}.dart-ffi-generator;
           androidTarget = target;
           ffiLibraryName = "flutter_haskell_bridge";
-          flutterPackageDir = "bridge";
+          flutterPackageDir = "flutter-haskell-bridge";
           packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
           localHaskellPackages = {
             haskell-lib = {
@@ -87,8 +87,8 @@
               export ANDROID_HOME="${androidSdk.sdkRoot}"
               export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
 
-              if [ -d app/android ]; then
-                local_properties=app/android/local.properties
+              if [ -d flutter-app/android ]; then
+                local_properties=flutter-app/android/local.properties
               elif [ -d android ]; then
                 local_properties=android/local.properties
               else
@@ -111,7 +111,7 @@ EOF
               Common commands:
                 nix run .#regen-haskell-nix
                 nix run .#bundle-libs
-                cd app
+                cd flutter-app
                 flutter pub get
                 flutter run
 

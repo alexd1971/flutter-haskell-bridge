@@ -12,7 +12,7 @@ Layout:
 ```text
 haskell-lib/              Reusable Haskell domain library
 haskell-ffi/              Plugin FFI adapter and TH export declarations
-flutter_haskell_plugin/   Flutter plugin package that owns the Dart API
+flutter_plugin/   Flutter plugin package that owns the Dart API
 ```
 
 `haskell-lib/` is only the template's local example domain package. A real
@@ -39,7 +39,7 @@ The normal edit/build loop is:
    exported symbols and generate the FFI manifest consumed by the Dart API
    generator.
 3. Run `nix run .#bundle-libs`.
-4. Run Flutter checks from `flutter_haskell_plugin/`.
+4. Run Flutter checks from `flutter_plugin/`.
 
 ### Build artifacts
 
@@ -79,10 +79,10 @@ nix run .#bundle-libs -- native
 This command copies:
 
 - `arm64-v8a/*.so` to
-  `flutter_haskell_plugin/android/src/main/jniLibs/arm64-v8a/`;
-- native `.so`/`.dylib` files to `flutter_haskell_plugin/linux/lib/` or
-  `flutter_haskell_plugin/macos/lib/`;
-- `flutter_haskell_api.dart` to `flutter_haskell_plugin/lib/` from the selected
+  `flutter_plugin/android/src/main/jniLibs/arm64-v8a/`;
+- native `.so`/`.dylib` files to `flutter_plugin/linux/lib/` or
+  `flutter_plugin/macos/lib/`;
+- `flutter_haskell_api.dart` to `flutter_plugin/lib/` from the selected
   target manifest.
 
 `bundle-libs -- all` builds Android and native artifacts. The FFI manifest is
@@ -94,11 +94,11 @@ target-specific.
 
 ```bash
 nix run .#bundle-libs
-cd flutter_haskell_plugin
+cd flutter_plugin
 flutter pub get
 flutter analyze
 ```
 
 `bundle-libs` copies generated runtime artifacts into
-`flutter_haskell_plugin/`. Commit those copied artifacts and the generated Dart
+`flutter_plugin/`. Commit those copied artifacts and the generated Dart
 API if the plugin should be buildable by ordinary Flutter tooling without Nix.

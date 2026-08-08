@@ -5,12 +5,12 @@ This application has an embedded Haskell-backed Flutter bridge.
 Layout:
 
 ```text
-app/                     Flutter application
-bridge/                  Flutter package with Dart FFI and Android JNI libraries
-haskell-ffi/             Application FFI adapter and TH export declarations
-  cbits/                 RTS initialization shim
-haskell-lib/             Example reusable Haskell domain library
-  src/Lib.hs             Haskell implementation API
+flutter-app/              Flutter application
+flutter-haskell-bridge/   Flutter package with Dart FFI and Android JNI libraries
+haskell-ffi/              Application FFI adapter and TH export declarations
+  cbits/                  RTS initialization shim
+haskell-lib/              Example reusable Haskell domain library
+  src/Lib.hs              Haskell implementation API
 ```
 
 This example keeps the domain code in local `haskell-lib/`; downstream
@@ -29,11 +29,13 @@ nix run .#bundle-libs -- native
 The optional argument is `all`, `android`, or `native`; `all` is the default.
 The command copies:
 
-- Haskell Android `.so` files into `bridge/android/src/main/jniLibs/arm64-v8a/`;
-- Haskell native desktop `.so`/`.dylib` files into `bridge/linux/lib/` or
-  `bridge/macos/lib/`, depending on the current Nix system;
+- Haskell Android `.so` files into
+  `flutter-haskell-bridge/android/src/main/jniLibs/arm64-v8a/`;
+- Haskell native desktop `.so`/`.dylib` files into
+  `flutter-haskell-bridge/linux/lib/` or `flutter-haskell-bridge/macos/lib/`,
+  depending on the current Nix system;
 - Dart FFI API derived from the selected target's `haskell-ffi` export splice
-  into `bridge/lib/`.
+  into `flutter-haskell-bridge/lib/`.
 
 The application depends on the embedded plugin through a local path dependency.
 
@@ -58,7 +60,7 @@ Then run the Flutter app from this directory:
 
 ```bash
 nix develop
-cd app
+cd flutter-app
 flutter pub get
 flutter run
 ```

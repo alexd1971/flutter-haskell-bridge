@@ -45,7 +45,7 @@
           dartFfiGenerator = tools.dartFfiGenerator;
           androidTarget = target;
           ffiLibraryName = "flutter_haskell_app";
-          flutterPackageDir = "bridge";
+          flutterPackageDir = "flutter-haskell-bridge";
           packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
           localHaskellPackages = {
             haskell-lib = {
@@ -89,7 +89,7 @@ Flutter Haskell app example shell
 Common commands:
   nix run .#regen-haskell-nix
   nix run .#bundle-libs
-  cd app
+  cd flutter-app
   flutter pub get
   flutter run
 

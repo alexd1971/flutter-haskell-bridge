@@ -72,7 +72,7 @@ For Android-only work:
 
 ```bash
 nix run .#bundle-libs -- android
-cd app
+cd flutter-app
 flutter pub get
 flutter run
 ```
@@ -81,7 +81,7 @@ For Linux desktop work:
 
 ```bash
 nix run .#bundle-libs -- native
-cd app
+cd flutter-app
 flutter pub get
 flutter run -d linux
 ```
@@ -89,7 +89,7 @@ flutter run -d linux
 For a reusable plugin template, run Flutter commands inside the plugin package:
 
 ```bash
-cd flutter_haskell_plugin
+cd flutter_plugin
 flutter pub get
 flutter analyze
 ```

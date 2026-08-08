@@ -4,16 +4,17 @@ This template creates a Flutter application with an embedded Haskell-backed
 Flutter plugin.
 
 It is intended to be used as a full application scaffold: the Flutter app
-depends on the local `bridge/` package, while `bridge/` owns Dart FFI bindings
-and platform-specific native library placement.
+depends on the local `flutter-haskell-bridge/` package, while
+`flutter-haskell-bridge/` owns Dart FFI bindings and platform-specific native
+library placement.
 
 Layout:
 
 ```text
-app/                     Flutter application
-bridge/                  Flutter package that bridges Dart and Haskell
-haskell-ffi/             Application FFI adapter and TH export declarations
-haskell-lib/             Example reusable Haskell domain library
+flutter-app/              Flutter application
+flutter-haskell-bridge/   Flutter package that bridges Dart and Haskell
+haskell-ffi/              Application FFI adapter and TH export declarations
+haskell-lib/              Example reusable Haskell domain library
 ```
 
 `haskell-lib/` is only the template's local example domain package. A real
@@ -40,7 +41,7 @@ The normal edit/build loop is:
    exported symbols and generate the FFI manifest consumed by the Dart API
    generator.
 3. Run `nix run .#bundle-libs`.
-4. Run the Flutter app from `app/`.
+4. Run the Flutter app from `flutter-app/`.
 
 ### Bundle artifacts
 
@@ -57,11 +58,12 @@ The command regenerates Cabal-derived Nix expressions, builds selected
 artifacts, and copies:
 
 - Haskell Android `.so` files into
-  `bridge/android/src/main/jniLibs/arm64-v8a/`;
-- Haskell native desktop `.so`/`.dylib` files into `bridge/linux/lib/` or
-  `bridge/macos/lib/`, depending on the current Nix system;
-- one generated Dart FFI API into `bridge/lib/` from the selected target
-  manifest.
+  `flutter-haskell-bridge/android/src/main/jniLibs/arm64-v8a/`;
+- Haskell native desktop `.so`/`.dylib` files into
+  `flutter-haskell-bridge/linux/lib/` or `flutter-haskell-bridge/macos/lib/`,
+  depending on the current Nix system;
+- one generated Dart FFI API into `flutter-haskell-bridge/lib/` from the
+  selected target manifest.
 
 `bundle-libs -- all` builds Android and native artifacts. The FFI manifest is
 therefore generated once per target build, but the Dart API file is written only
@@ -80,7 +82,7 @@ The application depends on the embedded plugin through a local path dependency.
 
 ```bash
 nix run .#bundle-libs -- android
-cd app
+cd flutter-app
 flutter pub get
 flutter run
 ```
@@ -89,10 +91,10 @@ flutter run
 
 ```bash
 nix run .#bundle-libs -- native
-cd app
+cd flutter-app
 flutter run -d linux
 ```
 
-`bundle-libs` copies generated runtime artifacts into `bridge/`. Commit those
-copied artifacts and the generated Dart API if the app should be buildable by
-ordinary Flutter tooling without Nix.
+`bundle-libs` copies generated runtime artifacts into `flutter-haskell-bridge/`.
+Commit those copied artifacts and the generated Dart API if the app should be
+buildable by ordinary Flutter tooling without Nix.
