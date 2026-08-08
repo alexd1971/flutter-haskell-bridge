@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Runtime shared-library bundles prune unused Template Haskell dependencies
+
+Android and native bundle builders now prune unused direct `DT_NEEDED` entries
+from the root Haskell FFI shared library before recursively copying runtime
+dependencies. This keeps dependencies that resolve at least one currently
+undefined dynamic symbol and removes dependencies that do not. Missing
+candidates and platform system libraries are left untouched.
+
+The pruning step removes build-time Template Haskell libraries from runtime
+bundles when they are only retained by Cabal/GHC metadata. It can be disabled
+with `pruneUnusedDependencies = false` on `buildAndroidLib` or
+`buildNativeLib`.
+
+Measured on `tic-tac-toe-hs`:
+
+- Linux native bundle: 27.29 MiB / 24 `.so` files without pruning,
+  21.81 MiB / 18 `.so` files with pruning.
+- Android arm64-v8a bundle: 37.57 MiB / 17 `.so` files without pruning,
+  28.70 MiB / 11 `.so` files with pruning.
+
+The pruned libraries were `haskell-ffi-th`, `template-haskell`, `ghc-boot-th`,
+`pretty`, `array`, and `deepseq`.
+
 ### Nix-managed Flutter and Android SDKs
 
 The Flutter dev shells no longer require a manually installed Flutter SDK or

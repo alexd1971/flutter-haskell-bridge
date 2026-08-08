@@ -1,16 +1,16 @@
 # Future work
 
-## Linux desktop shared-library bundles
+## Fully static Haskell payloads
 
-The current bridge packaging path targets Android JNI libraries. Flutter desktop
-support will need a similar bundling step for Linux shared libraries:
+The current bridge builders still bundle GHC runtime/base shared libraries and
+non-system dynamic dependencies required by those libraries. They do prune
+unused direct `DT_NEEDED` entries from the root FFI library, which removes
+Template Haskell build-time packages from runtime bundles in typical projects.
 
-- copy the public Haskell shared library into the Flutter desktop bundle;
-- recursively copy non-system `DT_NEEDED` dependencies from the Nix closure;
-- rewrite bundled ELF RPATH/RUNPATH entries to `$ORIGIN`;
-- create SONAME symlinks when a dependency records `libfoo.so.1` but the copied
-  file is named `libfoo.so.1.2.3`.
-
-The old `prototype-hs/hs-lib-ffi` experiment had a Python `bundle-elf.py` script
-covering this shape. The implementation should be redone in this repository when
-Flutter Linux desktop support becomes a real target.
+A stronger optimization would produce one public shared library that statically
+contains the project Haskell code and leaves only platform/system dynamic
+dependencies. The straightforward approach is currently blocked by Cabal/GHC
+installing non-PIC vanilla static archives; the generated `.dyn_o` objects are
+not installed as a ready-to-link archive. Solving this likely requires a deeper
+package build strategy for PIC static archives or an explicit dynamic-object
+archive/link step.

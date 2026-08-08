@@ -68,6 +68,20 @@ The generated Dart API is target-independent: Android and native builds export
 the same symbols. Target-specific manifests are still produced independently,
 because each Haskell target is compiled separately.
 
+By default, Android and native bundles prune unused direct `DT_NEEDED` entries
+from the root Haskell FFI library before copying recursive runtime
+dependencies. This removes build-time Template Haskell libraries from runtime
+artifacts when they do not resolve any dynamic symbols needed by the FFI
+library. Set `pruneUnusedDependencies = false` in `buildAndroidLib` or
+`buildNativeLib` to disable this behaviour for libraries that intentionally
+keep a dependency for side effects rather than symbol resolution.
+
+On the `tic-tac-toe-hs` example this reduced raw shared-library bundle size
+from 27.29 MiB to 21.81 MiB on Linux (`24` to `18` `.so` files) and from
+37.57 MiB to 28.70 MiB on Android arm64-v8a (`17` to `11` `.so` files).
+The removed libraries were `haskell-ffi-th`, `template-haskell`,
+`ghc-boot-th`, `pretty`, `array`, and `deepseq`.
+
 For Android-only work:
 
 ```bash

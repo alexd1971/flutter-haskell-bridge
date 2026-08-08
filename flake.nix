@@ -34,11 +34,12 @@
     in
     forEachBuildSystem (pkgs:
       let
+        tools = import ./nix/tools.nix { inherit pkgs; };
         bridgeLib = import ./nix/bridge-lib.nix {
           inherit pkgs th-cross;
           system = pkgs.stdenv.hostPlatform.system;
+          pruneUnusedNeeded = tools.pruneUnusedNeeded;
         };
-        tools = import ./nix/tools.nix { inherit pkgs; };
       in
       {
         packages = {

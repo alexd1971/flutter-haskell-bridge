@@ -1,4 +1,10 @@
-{ pkgs, th-cross, system }:
+{ pkgs
+, th-cross
+, system
+, pruneUnusedNeeded ? pkgs.writeShellScriptBin "flutter-haskell-prune-unused-needed" ''
+    exec ${pkgs.python3}/bin/python3 ${../tools/prune-unused-needed.py} "$@"
+  ''
+}:
 
 let
   androidSystemLibraries = [
@@ -42,12 +48,33 @@ let
     "libutil.so.1"
   ];
 
+  pruneUnusedNeededCommand = systemLibraries: ''
+    ${pruneUnusedNeeded}/bin/flutter-haskell-prune-unused-needed \
+      --library "$1" \
+      --candidates "$candidates" \
+      ${pkgs.lib.concatMapStringsSep " \\\n      " (libName: "--system-library ${pkgs.lib.escapeShellArg libName}") systemLibraries}
+  '';
+
+  systemLibraryPredicateScript = functionName: systemLibraries: ''
+    ${functionName}() {
+      case "$1" in
+        ${pkgs.lib.concatMapStringsSep "|" (libName: "${libName}") systemLibraries})
+          return 0
+          ;;
+        *)
+          return 1
+          ;;
+      esac
+    }
+  '';
+
   copySharedLibraries =
     { name
     , rootPackage
     , targetGhc
     , androidAbi
     , manifestFile ? null
+    , pruneUnusedDependencies ? true
     }:
     let
       packageClosure = pkgs.closureInfo {
@@ -61,6 +88,7 @@ let
       "${name}-${androidAbi}-jni-libs"
       {
         nativeBuildInputs = [
+          pkgs.binutils
           pkgs.patchelf
         ];
       }
@@ -81,23 +109,19 @@ let
 
         copied="$(mktemp)"
 
-        is_android_system_library() {
-          case "$1" in
-            ${pkgs.lib.concatMapStringsSep "|" (libName: "${libName}") androidSystemLibraries})
-              return 0
-              ;;
-            *)
-              return 1
-              ;;
-          esac
-        }
-
         find_candidate() {
           awk -F '\t' -v name="$1" '$1 == name { print $2; exit }' "$candidates"
         }
 
+        ${systemLibraryPredicateScript "is_android_system_library" androidSystemLibraries}
+
+        prune_unused_needed() {
+          ${pruneUnusedNeededCommand androidSystemLibraries}
+        }
+
         copy_with_needed() {
           local source="$1"
+          local prune_needed="''${2:-0}"
           local soname
           soname="$(basename "$source")"
 
@@ -110,6 +134,11 @@ let
           cp "$source" "$destination"
           chmod u+w "$destination"
           patchelf --set-rpath '$ORIGIN' "$destination" 2>/dev/null || true
+          ${pkgs.lib.optionalString pruneUnusedDependencies ''
+          if [ "$prune_needed" = 1 ]; then
+            prune_unused_needed "$destination"
+          fi
+          ''}
 
           while IFS= read -r needed; do
             if is_android_system_library "$needed"; then
@@ -131,7 +160,7 @@ let
         fi
 
         while IFS= read -r root_library; do
-          copy_with_needed "$root_library"
+          copy_with_needed "$root_library" 1
           copy_with_needed "$target_rts"
 
           # Cabal libraries rely on the final executable to link the RTS.
@@ -214,6 +243,7 @@ let
     , rootPackage
     , nativeGhc
     , manifestFile ? null
+    , pruneUnusedDependencies ? true
     }:
     let
       packageClosure = pkgs.closureInfo {
@@ -228,6 +258,7 @@ let
       {
         nativeBuildInputs =
           pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+            pkgs.binutils
             pkgs.patchelf
           ];
       }
@@ -260,19 +291,15 @@ let
             awk -F '\t' -v name="$1" '$1 == name { print $2; exit }' "$candidates"
           }
 
-          is_linux_system_library() {
-            case "$1" in
-              ${pkgs.lib.concatMapStringsSep "|" (libName: "${libName}") linuxSystemLibraries})
-                return 0
-                ;;
-              *)
-                return 1
-                ;;
-            esac
+          ${systemLibraryPredicateScript "is_linux_system_library" linuxSystemLibraries}
+
+          prune_unused_needed() {
+            ${pruneUnusedNeededCommand linuxSystemLibraries}
           }
 
           copy_with_needed() {
             local source="$1"
+            local prune_needed="''${2:-0}"
             local soname
             soname="$(basename "$source")"
 
@@ -289,6 +316,11 @@ let
             cp "$source" "$destination"
             chmod u+w "$destination"
             patchelf --set-rpath '$ORIGIN' "$destination" 2>/dev/null || true
+            ${pkgs.lib.optionalString pruneUnusedDependencies ''
+            if [ "$prune_needed" = 1 ]; then
+              prune_unused_needed "$destination"
+            fi
+            ''}
 
             while IFS= read -r needed; do
               local needed_source
@@ -299,7 +331,7 @@ let
             done < <(patchelf --print-needed "$destination" 2>/dev/null || true)
           }
 
-          copy_with_needed "$root_library"
+          copy_with_needed "$root_library" 1
 
           native_rts="$(find -L ${nativeGhc} -type f -name 'libHSrts-*-ghc*.so' ! -name '*_debug*' ! -name '*_thr*' -print -quit)"
           if [ -z "$native_rts" ]; then
@@ -326,7 +358,13 @@ let
           done < "${packageClosure}/store-paths"
         ''}
 
-        cp "$root_library" "$output_dir/lib${name}${sharedLibraryExtension}"
+        ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+          bridge_library_source="$output_dir/$(basename "$root_library")"
+        ''}
+        ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+          bridge_library_source="$root_library"
+        ''}
+        cp "$bridge_library_source" "$output_dir/lib${name}${sharedLibraryExtension}"
         chmod u+w "$output_dir/lib${name}${sharedLibraryExtension}"
         ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
           patchelf --set-rpath '$ORIGIN' "$output_dir/lib${name}${sharedLibraryExtension}" 2>/dev/null || true
@@ -356,11 +394,12 @@ in
     , localPackages ? { }
     , name ? "haskell"
     , manifestFile ? null
+    , pruneUnusedDependencies ? true
     }:
     let
       thCross = th-cross.lib.${system}.mkCrossFor {
         inherit ghcVersion target;
-      };
+        };
       rootPackage =
         thCross.buildPackage {
           inherit packageFile packageArgs localPackages;
@@ -372,10 +411,10 @@ in
                 mkdir -p "$(dirname "$HASKELL_FFI_MANIFEST")"
               '';
             };
-        };
+      };
     in
     copySharedLibraries {
-      inherit name rootPackage androidAbi manifestFile;
+      inherit name rootPackage androidAbi manifestFile pruneUnusedDependencies;
       targetGhc = thCross.targetGhc;
     };
 
@@ -386,6 +425,7 @@ in
     , localPackages ? { }
     , name ? "haskell"
     , manifestFile ? null
+    , pruneUnusedDependencies ? true
     }:
     let
       haskellPackages = pkgs.haskell.packages.${ghcPackageSetName ghcVersion};
@@ -395,7 +435,7 @@ in
         };
     in
     copyNativeSharedLibraries {
-      inherit name rootPackage manifestFile;
+      inherit name rootPackage manifestFile pruneUnusedDependencies;
       nativeGhc = haskellPackages.ghc;
     };
 }
