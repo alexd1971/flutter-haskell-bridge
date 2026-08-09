@@ -11,6 +11,8 @@ one public shared library. Follow-up work remains:
 - decide whether RTS DWARF unwind and NUMA support should remain disabled
   unconditionally for `nativeLinkMode = "static-haskell"` or become explicit
   knobs;
+- investigate symbol visibility, stripping, and linker garbage collection for
+  reducing the size of the main FFI shared library;
 - move the `.dyn_o` preservation strategy into `th-cross` for Android/cross-GHC
   builds;
 - add automated ELF/linking tests for the static-Haskell mode.

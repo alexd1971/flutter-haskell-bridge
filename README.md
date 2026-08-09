@@ -95,7 +95,10 @@ RTS without DWARF unwind and NUMA support, avoiding the `libdw`, `libelf`, and
 `libnuma` runtime dependency chain. The first build is expensive because it
 needs a native GHC build that preserves boot-package `.dyn_o` files. The
 resulting shared library exports the same FFI symbols and has no `NEEDED
-libHS*.so` entries.
+libHS*.so` entries. In a small Linux reference bundle, static-Haskell mode with
+copied non-system C dependencies originally needed `11` `.so` files; disabling
+RTS DWARF unwind and NUMA support reduced that to `3` files: the public FFI
+library plus `libffi` and `libgmp`.
 
 For Android-only work:
 

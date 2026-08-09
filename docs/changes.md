@@ -21,6 +21,11 @@ libraries remain external.
 This mode is opt-in because the first build requires a native GHC rebuild.
 The default `nativeLinkMode = "dynamic"` path is unchanged.
 
+Measured on a small Linux reference bundle, static-Haskell mode with copied
+non-system C dependencies first produced `11` `.so` files. Building the custom
+RTS without DWARF unwind and NUMA support reduced the bundle to `3` files: the
+public FFI library, `libffi`, and `libgmp`.
+
 ### Runtime shared-library bundles prune unused Template Haskell dependencies
 
 Android and native bundle builders now prune unused direct `DT_NEEDED` entries
