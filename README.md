@@ -46,8 +46,6 @@ The normal downstream edit/build loop is:
 3. Run `nix run .#bundle-libs`.
 4. Run the Flutter app or plugin checks.
 
-This is the same workflow used by `tic-tac-toe-hs`.
-
 ### Bundle artifacts
 
 ```bash
@@ -76,11 +74,11 @@ library. Set `pruneUnusedDependencies = false` in `buildAndroidLib` or
 `buildNativeLib` to disable this behaviour for libraries that intentionally
 keep a dependency for side effects rather than symbol resolution.
 
-On the `tic-tac-toe-hs` example this reduced raw shared-library bundle size
-from 27.29 MiB to 21.81 MiB on Linux (`24` to `18` `.so` files) and from
-37.57 MiB to 28.70 MiB on Android arm64-v8a (`17` to `11` `.so` files).
-The removed libraries were `haskell-ffi-th`, `template-haskell`,
-`ghc-boot-th`, `pretty`, `array`, and `deepseq`.
+In a small Flutter/Haskell application this reduced raw shared-library bundle
+size from 27.29 MiB to 21.81 MiB on Linux (`24` to `18` `.so` files) and from
+37.57 MiB to 28.70 MiB on Android arm64-v8a (`17` to `11` `.so` files). The
+removed libraries were `haskell-ffi-th`, `template-haskell`, `ghc-boot-th`,
+`pretty`, `array`, and `deepseq`.
 
 Native Linux builds can opt into an experimental static-Haskell link mode:
 
@@ -91,11 +89,13 @@ nativeLinkMode = "static-haskell";
 This mode builds the final native shared library from package `.dyn_o` archives
 and GHC boot-package `.dyn_o` archives. It removes `libHS*.so` runtime
 dependencies from the final native artifact. Non-system C dependencies that
-remain in `DT_NEEDED`, such as `libgmp`, `libffi`, `libdw`, `libelf`, and
-`libnuma`, are copied next to the final shared library. The first build is
-expensive because it needs a native GHC build that preserves boot-package
-`.dyn_o` files. On `tic-tac-toe-hs`, the resulting `libtic_tac_toe.so` exports
-the same FFI symbols and has no `NEEDED libHS*.so` entries.
+remain in `DT_NEEDED`, such as `libgmp` and `libffi`, are copied next to the
+final shared library. The custom native GHC used by this mode also builds the
+RTS without DWARF unwind and NUMA support, avoiding the `libdw`, `libelf`, and
+`libnuma` runtime dependency chain. The first build is expensive because it
+needs a native GHC build that preserves boot-package `.dyn_o` files. The
+resulting shared library exports the same FFI symbols and has no `NEEDED
+libHS*.so` entries.
 
 For Android-only work:
 

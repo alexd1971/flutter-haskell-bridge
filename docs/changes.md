@@ -12,9 +12,11 @@ manually with the C compiler.
 
 The resulting native artifact has no `DT_NEEDED` entries for `libHS*.so`.
 Non-system C dependencies required by the RTS and numeric/runtime support, for
-example `libgmp`, `libffi`, `libdw`, `libelf`, and `libnuma`, are still dynamic
-libraries, but they are copied into the native bundle. Glibc/system libraries
-remain external.
+example `libgmp` and `libffi`, are still dynamic libraries, but they are copied
+into the native bundle. The custom native GHC used by this mode disables RTS
+DWARF unwind and NUMA support, which removes the `libdw`, `libelf`, `libnuma`,
+and compression-library dependency chain from typical bundles. Glibc/system
+libraries remain external.
 
 This mode is opt-in because the first build requires a native GHC rebuild.
 The default `nativeLinkMode = "dynamic"` path is unchanged.
@@ -32,7 +34,7 @@ bundles when they are only retained by Cabal/GHC metadata. It can be disabled
 with `pruneUnusedDependencies = false` on `buildAndroidLib` or
 `buildNativeLib`.
 
-Measured on `tic-tac-toe-hs`:
+Measured on a small Flutter/Haskell reference application:
 
 - Linux native bundle: 27.29 MiB / 24 `.so` files without pruning,
   21.81 MiB / 18 `.so` files with pruning.
@@ -56,8 +58,7 @@ Android SDK.  Both are provided by Nix.
   directly from the Nix store (read-only). Pinning to Flutter's own
   requested versions means AGP never perceives a missing component and
   never needs to write to the SDK root, so no wrapper is needed here.
-- All dev shells (`templates/flutter-app`, `templates/flutter-plugin`,
-  `tic-tac-toe-hs`) materialise the Flutter farm in `shellHook`, export
+- All dev shells and templates materialise the Flutter farm in `shellHook`, export
   `ANDROID_HOME`/`ANDROID_SDK_ROOT` to the Android SDK's Nix store path, and
   write `android/local.properties` automatically.
 

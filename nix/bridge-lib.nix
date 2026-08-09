@@ -196,7 +196,10 @@ let
     let
       haskellPackages = pkgs.haskell.packages.${ghcPackageSetName ghcVersion};
     in
-    haskellPackages.ghc.overrideAttrs (old: {
+    (haskellPackages.ghc.override {
+      enableDwarf = false;
+      enableNuma = false;
+    }).overrideAttrs (old: {
       postInstall = (old.postInstall or "") + ''
         dynObjectRoot="$out/lib/ghc-${ghcVersion}/dyn-o"
         mkdir -p "$dynObjectRoot"
