@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Experimental static-Haskell native linking
+
+`buildNativeLib` now accepts `nativeLinkMode = "static-haskell"` on Linux.
+This mode preserves GHC boot-package `.dyn_o` files in a custom native GHC
+output, builds PIC archives from them, installs package-level `.dyn_o` archives
+for the root/local Haskell packages, and links the final public shared library
+manually with the C compiler.
+
+The resulting native artifact has no `DT_NEEDED` entries for `libHS*.so`.
+It still depends dynamically on C/system libraries required by the RTS and
+numeric/runtime support, for example `libc`, `libm`, `libgmp`, `libffi`,
+`libdw`, and `libnuma`.
+
+This mode is opt-in because the first build requires a native GHC rebuild.
+The default `nativeLinkMode = "dynamic"` path is unchanged.
+
 ### Runtime shared-library bundles prune unused Template Haskell dependencies
 
 Android and native bundle builders now prune unused direct `DT_NEEDED` entries

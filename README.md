@@ -82,6 +82,20 @@ from 27.29 MiB to 21.81 MiB on Linux (`24` to `18` `.so` files) and from
 The removed libraries were `haskell-ffi-th`, `template-haskell`,
 `ghc-boot-th`, `pretty`, `array`, and `deepseq`.
 
+Native Linux builds can opt into an experimental static-Haskell link mode:
+
+```nix
+nativeLinkMode = "static-haskell";
+```
+
+This mode builds the final native shared library from package `.dyn_o` archives
+and GHC boot-package `.dyn_o` archives. It removes `libHS*.so` runtime
+dependencies from the final native artifact. The first build is expensive
+because it needs a native GHC build that preserves boot-package `.dyn_o` files.
+On `tic-tac-toe-hs`, the resulting `libtic_tac_toe.so` exports the same FFI
+symbols, has no `NEEDED libHS*.so` entries, and depends only on C/system
+libraries such as `libc`, `libm`, `libgmp`, `libffi`, `libdw`, and `libnuma`.
+
 For Android-only work:
 
 ```bash
@@ -142,7 +156,10 @@ The flake exposes:
 - `lib.${system}.buildAndroidLib`: builds Android JNI artifacts from a Haskell
   package compiled by `template-haskell-cross`.
 - `lib.${system}.buildNativeLib`: builds desktop/native shared library
-  artifacts for the current Nix system with the native GHC package set.
+  artifacts for the current Nix system with the native GHC package set. Pass
+  `nativeLinkMode = "static-haskell"` on Linux to produce one shared library
+  with Haskell packages linked from `.dyn_o` archives instead of bundling
+  `libHS*.so` dependencies.
 - `lib.${system}.tools`: a Flutter SDK wrapper that materialises a writable
   symlink farm on first use (so Gradle can use the read-only Nix store SDK),
   plus a read-only reference to a Nix-composed Android SDK. See

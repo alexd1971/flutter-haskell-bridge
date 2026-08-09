@@ -192,6 +192,52 @@ let
   ghcPackageSetName = ghcVersion:
     "ghc" + pkgs.lib.replaceStrings [ "." ] [ "" ] ghcVersion;
 
+  nativeGhcWithDynObjectArchives = ghcVersion:
+    let
+      haskellPackages = pkgs.haskell.packages.${ghcPackageSetName ghcVersion};
+    in
+    haskellPackages.ghc.overrideAttrs (old: {
+      postInstall = (old.postInstall or "") + ''
+        dynObjectRoot="$out/lib/ghc-${ghcVersion}/dyn-o"
+        mkdir -p "$dynObjectRoot"
+
+        if [ -d _build ]; then
+          find _build -type f -name '*.dyn_o' -print \
+            | while IFS= read -r dyn_object; do
+                install -Dm644 "$dyn_object" "$dynObjectRoot/$dyn_object"
+              done
+        fi
+
+        find "$dynObjectRoot" -type f -name '*.dyn_o' | sort > "$dynObjectRoot/files"
+      '';
+    });
+
+  nativeGhcDynObjectArchives =
+    { ghcVersion
+    , nativeGhc
+    }:
+    pkgs.runCommand "ghc-${ghcVersion}-dyn-object-archives"
+      {
+        nativeBuildInputs = [
+          pkgs.binutils
+          pkgs.python3
+        ];
+      }
+      ''
+        set -euo pipefail
+
+        dyn_object_root="${nativeGhc}/lib/ghc-${ghcVersion}/dyn-o"
+        dyn_archive_dir="$out/lib/ghc-${ghcVersion}/dyn-archives"
+
+        PYTHONPATH=${../tools} \
+          ${pkgs.python3}/bin/python3 ${../tools/build-ghc-dyn-object-archives.py} \
+          --ar ${pkgs.binutils}/bin/ar \
+          --ranlib ${pkgs.binutils}/bin/ranlib \
+          --ghc-pkg ${nativeGhc}/bin/ghc-pkg \
+          --dyn-object-root "$dyn_object_root" \
+          --out "$dyn_archive_dir"
+      '';
+
   buildNativePackage =
     { ghcVersion
     , packageFile
@@ -199,9 +245,37 @@ let
     , localPackages ? { }
     , manifestFile ? null
     , name ? "haskell"
+    , installDynObjectArchive ? false
     }:
     let
       haskellPackages = pkgs.haskell.packages.${ghcPackageSetName ghcVersion};
+      withDynObjectArchive = package:
+        if installDynObjectArchive then
+          pkgs.haskell.lib.overrideCabal package (old: {
+            postInstall = (old.postInstall or "") + ''
+              dyn_archive_dir="$out/lib/ghc-dyn-o"
+              mkdir -p "$dyn_archive_dir"
+
+              dyn_objects="$(mktemp)"
+              find . -type f -name '*.dyn_o' -print > "$dyn_objects"
+
+              if [ -s "$dyn_objects" ]; then
+                archive_source="$(
+                  find "$out" -type f -name 'libHS*.a' ! -name '*_p.a' -print -quit
+                )"
+                if [ -z "$archive_source" ]; then
+                  echo "Could not find installed Haskell archive for dyn_o package" >&2
+                  exit 1
+                fi
+
+                archive="$dyn_archive_dir/$(basename "$archive_source")"
+                xargs ar rcs "$archive" < "$dyn_objects"
+                ranlib "$archive"
+              fi
+            '';
+          })
+        else
+          package;
       localPackageOutputs =
         pkgs.lib.fix
           (self:
@@ -214,12 +288,13 @@ let
                       (packageName: _: builtins.hasAttr packageName packageArguments)
                       self;
                 in
-                haskellPackages.callPackage
-                  localPackage.packageFile
-                  ((localPackage.packageArgs or { }) // localDependencyArguments))
+                withDynObjectArchive
+                  (haskellPackages.callPackage
+                    localPackage.packageFile
+                    ((localPackage.packageArgs or { }) // localDependencyArguments)))
               localPackages);
       finalPackageArgs = packageArgs // localPackageOutputs;
-      basePackage = haskellPackages.callPackage packageFile finalPackageArgs;
+      basePackage = withDynObjectArchive (haskellPackages.callPackage packageFile finalPackageArgs);
     in
     pkgs.haskell.lib.overrideCabal basePackage
       (old:
@@ -237,6 +312,54 @@ let
             cp "$TMPDIR/${manifestFile}" "$out/${manifestFile}"
           '';
         });
+
+  linkNativeStaticHaskellLibrary =
+    { name
+    , rootPackage
+    , nativeGhc
+    , nativeGhcDynArchives
+    , ghcVersion
+    , manifestFile ? null
+    }:
+    let
+      packageClosure = pkgs.closureInfo {
+        rootPaths = [ rootPackage ];
+      };
+      libExt = sharedLibraryExtension;
+    in
+    pkgs.runCommand
+      "${name}-${pkgs.stdenv.hostPlatform.system}-static-haskell-shared-lib"
+      {
+        nativeBuildInputs = [
+          pkgs.binutils
+          pkgs.patchelf
+          pkgs.python3
+          pkgs.stdenv.cc
+        ];
+      }
+      ''
+        set -euo pipefail
+
+        ${pkgs.lib.optionalString (!pkgs.stdenv.hostPlatform.isLinux) ''
+          echo "nativeLinkMode = \"static-haskell\" is currently supported only on Linux" >&2
+          exit 1
+        ''}
+
+        dyn_archive_dir="${nativeGhcDynArchives}/lib/ghc-${ghcVersion}/dyn-archives"
+
+        PYTHONPATH=${../tools} \
+          ${pkgs.python3}/bin/python3 ${../tools/link-static-haskell-native-lib.py} \
+          --cc ${pkgs.stdenv.cc}/bin/cc \
+          --patchelf ${pkgs.patchelf}/bin/patchelf \
+          --ghc-pkg ${nativeGhc}/bin/ghc-pkg \
+          --name ${pkgs.lib.escapeShellArg name} \
+          --lib-extension ${pkgs.lib.escapeShellArg libExt} \
+          --root-package ${rootPackage} \
+          --store-paths ${packageClosure}/store-paths \
+          --dyn-archive-dir "$dyn_archive_dir" \
+          --out "$out" \
+          ${pkgs.lib.optionalString (manifestFile != null) "--manifest-file ${pkgs.lib.escapeShellArg manifestFile}"}
+      '';
 
   copyNativeSharedLibraries =
     { name
@@ -399,7 +522,7 @@ in
     let
       thCross = th-cross.lib.${system}.mkCrossFor {
         inherit ghcVersion target;
-        };
+      };
       rootPackage =
         thCross.buildPackage {
           inherit packageFile packageArgs localPackages;
@@ -411,7 +534,7 @@ in
                 mkdir -p "$(dirname "$HASKELL_FFI_MANIFEST")"
               '';
             };
-      };
+        };
     in
     copySharedLibraries {
       inherit name rootPackage androidAbi manifestFile pruneUnusedDependencies;
@@ -426,16 +549,39 @@ in
     , name ? "haskell"
     , manifestFile ? null
     , pruneUnusedDependencies ? true
+    , nativeLinkMode ? "dynamic"
     }:
     let
       haskellPackages = pkgs.haskell.packages.${ghcPackageSetName ghcVersion};
+      staticHaskell = nativeLinkMode == "static-haskell";
+      dynamic = nativeLinkMode == "dynamic";
+      nativeGhc =
+        if staticHaskell && !pkgs.stdenv.hostPlatform.isLinux then
+          throw "nativeLinkMode = \"static-haskell\" is currently supported only on Linux"
+        else if staticHaskell then
+          nativeGhcWithDynObjectArchives ghcVersion
+        else
+          haskellPackages.ghc;
+      nativeGhcDynArchives =
+        pkgs.lib.optionalAttrs staticHaskell {
+          nativeGhcDynArchives = nativeGhcDynObjectArchives {
+            inherit ghcVersion nativeGhc;
+          };
+        };
       rootPackage =
         buildNativePackage {
           inherit ghcVersion packageFile packageArgs localPackages name manifestFile;
+          installDynObjectArchive = staticHaskell;
         };
     in
-    copyNativeSharedLibraries {
-      inherit name rootPackage manifestFile pruneUnusedDependencies;
-      nativeGhc = haskellPackages.ghc;
-    };
+    if dynamic then
+      copyNativeSharedLibraries {
+        inherit name rootPackage manifestFile pruneUnusedDependencies nativeGhc;
+      }
+    else if staticHaskell then
+      linkNativeStaticHaskellLibrary ({
+        inherit name rootPackage nativeGhc ghcVersion manifestFile;
+      } // nativeGhcDynArchives)
+    else
+      throw "Unsupported nativeLinkMode: ${nativeLinkMode}";
 }

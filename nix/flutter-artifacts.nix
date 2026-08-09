@@ -7,6 +7,7 @@
 , androidAbi ? "arm64-v8a"
 , ffiLibraryName
 , flutterPackageDir
+, nativeLinkMode ? "dynamic"
 , packageDir ? "haskell-ffi"
 , packageFile
 , localHaskellPackages ? { }
@@ -58,7 +59,7 @@ let
 
     native-shared-libs =
       bridgeLib.buildNativeLib {
-        inherit ghcVersion packageFile manifestFile localPackages;
+        inherit ghcVersion packageFile manifestFile localPackages nativeLinkMode;
         name = ffiLibraryName;
       };
 
