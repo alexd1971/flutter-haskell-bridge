@@ -47,6 +47,76 @@ def dependency_archives(store_paths_file: Path, root_archive: Path) -> list[Path
     return sorted(archives)
 
 
+def shared_libraries_under(path: Path) -> list[Path]:
+    """Find shared libraries that can satisfy runtime ``DT_NEEDED`` entries."""
+    return sorted(
+        library
+        for library in path.glob("**/*.so*")
+        if library.is_file() or library.is_symlink()
+    )
+
+
+def shared_library_candidates(store_paths_file: Path) -> dict[str, Path]:
+    """Map shared library basenames to concrete files from a Nix closure."""
+    candidates: dict[str, Path] = {}
+    for line in store_paths_file.read_text().splitlines():
+        store_path = Path(line)
+        for library in shared_libraries_under(store_path):
+            candidates.setdefault(library.name, library)
+    return candidates
+
+
+def needed_libraries(patchelf: Path, library: Path) -> list[str]:
+    """Read direct runtime library dependencies from a shared object."""
+    output = subprocess.check_output(
+        [str(patchelf), "--print-needed", str(library)],
+        text=True,
+    )
+    return output.splitlines()
+
+
+def set_origin_rpath(patchelf: Path, library: Path) -> None:
+    """Set a local-origin runtime search path on a copied shared library."""
+    subprocess.call(
+        [str(patchelf), "--set-rpath", "$ORIGIN", str(library)],
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def copy_needed_libraries(
+    *,
+    patchelf: Path,
+    library: Path,
+    output_dir: Path,
+    candidates: dict[str, Path],
+    system_libraries: set[str],
+    copied: set[str],
+) -> None:
+    """Copy non-system runtime dependencies next to a shared library."""
+    for needed in needed_libraries(patchelf, library):
+        if needed in system_libraries or needed in copied:
+            continue
+
+        source = candidates.get(needed)
+        if source is None:
+            continue
+
+        destination = output_dir / needed
+        shutil.copyfile(source, destination)
+        destination.chmod(0o755)
+        set_origin_rpath(patchelf, destination)
+        copied.add(needed)
+
+        copy_needed_libraries(
+            patchelf=patchelf,
+            library=destination,
+            output_dir=output_dir,
+            candidates=candidates,
+            system_libraries=system_libraries,
+            copied=copied,
+        )
+
+
 def boot_archives(ghc_pkg: Path, dyn_archive_dir: Path) -> list[Path]:
     """Resolve GHC boot-package dynamic-object archives required for linking."""
     archives = [
@@ -121,6 +191,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dyn-archive-dir", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--manifest-file")
+    parser.add_argument(
+        "--system-library",
+        action="append",
+        default=[],
+        help="Runtime library name that should not be copied into the bundle.",
+    )
     return parser.parse_args()
 
 
@@ -150,9 +226,14 @@ def main() -> None:
     )
 
     output_library.chmod(0o755)
-    subprocess.call(
-        [str(args.patchelf), "--set-rpath", "$ORIGIN", str(output_library)],
-        stderr=subprocess.DEVNULL,
+    set_origin_rpath(args.patchelf, output_library)
+    copy_needed_libraries(
+        patchelf=args.patchelf,
+        library=output_library,
+        output_dir=output_dir,
+        candidates=shared_library_candidates(args.store_paths),
+        system_libraries=set(args.system_library),
+        copied={soname},
     )
 
     if args.manifest_file:

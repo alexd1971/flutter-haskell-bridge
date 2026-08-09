@@ -323,7 +323,7 @@ let
     }:
     let
       packageClosure = pkgs.closureInfo {
-        rootPaths = [ rootPackage ];
+        rootPaths = [ rootPackage nativeGhc ];
       };
       libExt = sharedLibraryExtension;
     in
@@ -358,6 +358,7 @@ let
           --store-paths ${packageClosure}/store-paths \
           --dyn-archive-dir "$dyn_archive_dir" \
           --out "$out" \
+          ${pkgs.lib.concatMapStringsSep " \\\n          " (libName: "--system-library ${pkgs.lib.escapeShellArg libName}") linuxSystemLibraries} \
           ${pkgs.lib.optionalString (manifestFile != null) "--manifest-file ${pkgs.lib.escapeShellArg manifestFile}"}
       '';
 

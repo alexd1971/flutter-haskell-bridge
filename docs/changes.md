@@ -11,9 +11,10 @@ for the root/local Haskell packages, and links the final public shared library
 manually with the C compiler.
 
 The resulting native artifact has no `DT_NEEDED` entries for `libHS*.so`.
-It still depends dynamically on C/system libraries required by the RTS and
-numeric/runtime support, for example `libc`, `libm`, `libgmp`, `libffi`,
-`libdw`, and `libnuma`.
+Non-system C dependencies required by the RTS and numeric/runtime support, for
+example `libgmp`, `libffi`, `libdw`, `libelf`, and `libnuma`, are still dynamic
+libraries, but they are copied into the native bundle. Glibc/system libraries
+remain external.
 
 This mode is opt-in because the first build requires a native GHC rebuild.
 The default `nativeLinkMode = "dynamic"` path is unchanged.
