@@ -11,11 +11,11 @@
 , ffiPackageDir ? "haskell-ffi"
 , ffiPackageFile
 , localHaskellPackages
+, packagesToRegenerate ? null
+, dartApiFile ? "flutter_haskell_api.dart"
 }:
 
 let
-  dartApiFile = "flutter_haskell_api.dart";
-
   # `regen-haskell-nix` regenerates cabal2nix files for source packages that are
   # maintained together with the Flutter project. External packages can opt out
   # with `regenerate = false`.
@@ -37,8 +37,14 @@ let
     outputFile = builtins.baseNameOf ffiPackageFile;
   };
 
-  packagesToRegenerate =
+  defaultPackagesToRegenerate =
     localPackagesToRegenerate ++ [ ffiPackageToRegenerate ];
+
+  effectivePackagesToRegenerate =
+    if packagesToRegenerate == null then
+      defaultPackagesToRegenerate
+    else
+      packagesToRegenerate;
 
   copyAndroidArtifacts = ''
     jni_libs="$(nix build --no-link --print-out-paths .#android-jni-libs)"
@@ -107,7 +113,7 @@ let
         )
       }
 
-      ${pkgs.lib.concatMapStringsSep "\n" regenerateCommand packagesToRegenerate}
+      ${pkgs.lib.concatMapStringsSep "\n" regenerateCommand effectivePackagesToRegenerate}
     '';
 
   bundleLibsScript =
