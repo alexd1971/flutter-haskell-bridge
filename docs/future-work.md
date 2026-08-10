@@ -13,6 +13,6 @@ one public shared library. Follow-up work remains:
   knobs;
 - investigate symbol visibility, stripping, and linker garbage collection for
   reducing the size of the main FFI shared library;
-- move the `.dyn_o` preservation strategy into `th-cross` for Android/cross-GHC
-  builds;
+- extend Android static-Haskell linking beyond `arm64-v8a` if additional target
+  profiles are added;
 - add automated ELF/linking tests for the static-Haskell mode.

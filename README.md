@@ -100,6 +100,19 @@ copied non-system C dependencies originally needed `11` `.so` files; disabling
 RTS DWARF unwind and NUMA support reduced that to `3` files: the public FFI
 library plus `libffi` and `libgmp`.
 
+Android arm64-v8a builds can opt into the same static-Haskell strategy:
+
+```nix
+androidLinkMode = "static-haskell";
+```
+
+This mode uses cross-GHC `.dyn_o` archives provided by
+`template-haskell-cross`, plus package-level `.dyn_o` archives for the root and
+local Haskell packages. It is currently supported for `target =
+"aarch64-android"` and `androidAbi = "arm64-v8a"`. In the template app, Android
+static-Haskell mode reduced the raw JNI bundle from `8` `.so` files / 26 MiB to
+`3` `.so` files / 22 MiB: the public FFI library plus `libffi` and `libgmp`.
+
 For Android-only work:
 
 ```bash
@@ -158,7 +171,9 @@ Template flake inputs are GitHub inputs:
 The flake exposes:
 
 - `lib.${system}.buildAndroidLib`: builds Android JNI artifacts from a Haskell
-  package compiled by `template-haskell-cross`.
+  package compiled by `template-haskell-cross`. Pass `androidLinkMode =
+  "static-haskell"` for Android arm64-v8a to link Haskell packages from
+  `.dyn_o` archives instead of bundling `libHS*.so` dependencies.
 - `lib.${system}.buildNativeLib`: builds desktop/native shared library
   artifacts for the current Nix system with the native GHC package set. Pass
   `nativeLinkMode = "static-haskell"` on Linux to produce one shared library

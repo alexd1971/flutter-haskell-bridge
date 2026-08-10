@@ -25,6 +25,8 @@
       ghcVersion = "9.10.3";
       target = "aarch64-android";
       androidAbi = "arm64-v8a";
+      androidLinkMode = "dynamic";
+      nativeLinkMode = "dynamic";
       importNixpkgs = system:
         import nixpkgs {
           inherit system;
@@ -38,17 +40,37 @@
           bridge = import ../../nix/bridge-lib.nix { inherit pkgs th-cross system; };
           tools = import ../../nix/tools.nix { inherit pkgs; };
           haskellPackages = import ./haskell-packages.nix;
-        in
-        import ../../nix/flutter-artifacts.nix {
-          inherit pkgs ghcVersion androidAbi;
-          inherit (haskellPackages) localHaskellPackages;
-          haskellFfiTh = haskell-ffi-th;
-          bridgeLib = bridge;
-          dartFfiGenerator = tools.dartFfiGenerator;
-          androidTarget = target;
+          manifestFile = "ffi-manifest.json";
           ffiLibraryName = "flutter_haskell_app";
           flutterPackageDir = "flutter-haskell-bridge";
-          packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+          ffiPackageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+          localPackages =
+            {
+              haskell-ffi-th = {
+                packageFile = haskell-ffi-th + /nix/generated/haskell-ffi-th.nix;
+              };
+            }
+            // haskellPackages.localHaskellPackages;
+          androidBuilder = import ../../nix/flutter-android-builder.nix {
+            bridgeLib = bridge;
+            inherit ghcVersion ffiPackageFile manifestFile localPackages;
+            name = ffiLibraryName;
+            inherit target;
+            abi = androidAbi;
+            linkMode = androidLinkMode;
+          };
+          nativeBuilder = import ../../nix/flutter-native-builder.nix {
+            bridgeLib = bridge;
+            inherit pkgs ghcVersion ffiPackageFile manifestFile localPackages flutterPackageDir;
+            name = ffiLibraryName;
+            linkMode = nativeLinkMode;
+          };
+        in
+        import ../../nix/flutter-artifacts.nix {
+          inherit pkgs androidBuilder nativeBuilder;
+          inherit (haskellPackages) localHaskellPackages;
+          dartFfiGenerator = tools.dartFfiGenerator;
+          inherit ffiLibraryName flutterPackageDir manifestFile ffiPackageFile;
         };
     in
     {

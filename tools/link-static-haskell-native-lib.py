@@ -1,4 +1,4 @@
-"""Link a native shared library from Haskell ``*.dyn_o`` archives.
+"""Link a shared library from Haskell ``*.dyn_o`` archives.
 
 The root package archive is linked with ``--whole-archive`` to keep exported FFI
 symbols. Dependency and boot-package archives are linked normally inside a
@@ -56,12 +56,29 @@ def shared_libraries_under(path: Path) -> list[Path]:
     )
 
 
-def shared_library_candidates(store_paths_file: Path) -> dict[str, Path]:
+def file_description(file_command: Path, path: Path) -> str:
+    """Return the platform description reported by ``file`` for a path."""
+    return subprocess.check_output([str(file_command), str(path)], text=True)
+
+
+def shared_library_candidates(
+    store_paths_file: Path,
+    *,
+    file_command: Path | None,
+    required_file_substring: str | None,
+) -> dict[str, Path]:
     """Map shared library basenames to concrete files from a Nix closure."""
     candidates: dict[str, Path] = {}
     for line in store_paths_file.read_text().splitlines():
         store_path = Path(line)
         for library in shared_libraries_under(store_path):
+            if (
+                file_command is not None
+                and required_file_substring is not None
+                and required_file_substring
+                not in file_description(file_command, library)
+            ):
+                continue
             candidates.setdefault(library.name, library)
     return candidates
 
@@ -183,9 +200,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cc", required=True, type=Path)
     parser.add_argument("--patchelf", required=True, type=Path)
+    parser.add_argument("--file", type=Path)
     parser.add_argument("--ghc-pkg", required=True, type=Path)
     parser.add_argument("--name", required=True)
     parser.add_argument("--lib-extension", required=True)
+    parser.add_argument("--output-subdir", required=True)
     parser.add_argument("--root-package", required=True, type=Path)
     parser.add_argument("--store-paths", required=True, type=Path)
     parser.add_argument("--dyn-archive-dir", required=True, type=Path)
@@ -197,18 +216,22 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Runtime library name that should not be copied into the bundle.",
     )
+    parser.add_argument(
+        "--candidate-file-substring",
+        help="Only copy shared-library candidates whose `file` output contains this substring.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
-    """Link the static-Haskell native library and copy its optional manifest."""
+    """Link the static-Haskell shared library and copy its optional manifest."""
     args = parse_args()
     if not args.dyn_archive_dir.is_dir():
         raise RuntimeError(
-            f"Native GHC does not provide dyn object archives: {args.dyn_archive_dir}"
+            f"GHC does not provide dyn object archives: {args.dyn_archive_dir}"
         )
 
-    output_dir = args.out / "lib"
+    output_dir = args.out / args.output_subdir
     output_dir.mkdir(parents=True, exist_ok=True)
     soname = f"lib{args.name}{args.lib_extension}"
     output_library = output_dir / soname
@@ -231,7 +254,11 @@ def main() -> None:
         patchelf=args.patchelf,
         library=output_library,
         output_dir=output_dir,
-        candidates=shared_library_candidates(args.store_paths),
+        candidates=shared_library_candidates(
+            args.store_paths,
+            file_command=args.file,
+            required_file_substring=args.candidate_file_substring,
+        ),
         system_libraries=set(args.system_library),
         copied={soname},
     )

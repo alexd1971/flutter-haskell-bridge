@@ -43,11 +43,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1785663839,
-        "narHash": "sha256-rrmglNXq1pHudjnIrG2hEoG6TgGFmHnihsufgGLw8rE=",
+        "lastModified": 1786362085,
+        "narHash": "sha256-xpvN/vJHYXsNnitfkP60EPI4r8IOUjrBCzEwg3oC8zY=",
         "owner": "alexd1971",
         "repo": "template-haskell-cross",
-        "rev": "84c0e3a0ad57a2beb49cad07726c6eca95c9a671",
+        "rev": "cbe36c5d4610efb47c1f576e4c810459b6d5466b",
         "type": "github"
       },
       "original": {

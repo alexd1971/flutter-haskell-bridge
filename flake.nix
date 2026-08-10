@@ -38,7 +38,6 @@
         bridgeLib = import ./nix/bridge-lib.nix {
           inherit pkgs th-cross;
           system = pkgs.stdenv.hostPlatform.system;
-          pruneUnusedNeeded = tools.pruneUnusedNeeded;
         };
       in
       {

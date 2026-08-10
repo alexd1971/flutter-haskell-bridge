@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Experimental static-Haskell Android linking
+
+`buildAndroidLib` now accepts `androidLinkMode = "static-haskell"` for
+`target = "aarch64-android"` and `androidAbi = "arm64-v8a"`.
+
+This mode uses cross-GHC boot-package `.dyn_o` archives exposed by
+`template-haskell-cross`, installs package-level `.dyn_o` archives for the root
+and local Haskell packages, and links the final JNI shared library manually with
+the Android target C compiler.
+
+The resulting Android artifact has no `DT_NEEDED` entries for `libHS*.so`.
+Android system libraries stay external; non-system C dependencies such as
+`libffi` and `libgmp` are copied next to the final JNI library.
+
+Measured on the template app, dynamic Android bundling produced `8` `.so` files
+/ 26 MiB. Static-Haskell Android linking produced `3` `.so` files / 22 MiB: the
+public FFI library, `libffi`, and `libgmp`.
+
 ### Experimental static-Haskell native linking
 
 `buildNativeLib` now accepts `nativeLinkMode = "static-haskell"` on Linux.
