@@ -97,8 +97,7 @@ This command copies:
   `flutter_plugin/android/src/main/jniLibs/arm64-v8a/`;
 - native `.so`/`.dylib` files to `flutter_plugin/linux/lib/` or
   `flutter_plugin/macos/lib/`;
-- `flutter_haskell_api.dart` to `flutter_plugin/lib/` from the selected
-  target manifest.
+- `bridge.dart` to `flutter_plugin/lib/` from the selected target manifest.
 
 `bundle-libs -- all` builds Android and native artifacts. The FFI manifest is
 generated once per target build, but the Dart API file is written only once.

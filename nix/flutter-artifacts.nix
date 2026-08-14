@@ -1,18 +1,18 @@
 { pkgs
-, dartFfiGenerator
 , ffiLibraryName
-, flutterPackageDir
+, flutterBridgeDir
 # Platform-specific builders. The composer only consumes their public outputs:
 #   androidBuilder = { abi; package; }
 #   nativeBuilder = { libDir; package; }
 , androidBuilder
 , nativeBuilder
-, manifestFile
+, dartFfiGenerator ? (import ./tools.nix { inherit pkgs; }).dartFfiGenerator
+, manifestFile ? "ffi-manifest.json"
 , ffiPackageDir ? "haskell-ffi"
 , ffiPackageFile
 , localHaskellPackages
 , packagesToRegenerate ? null
-, dartApiFile ? "flutter_haskell_api.dart"
+, dartApiFile ? "bridge.dart"
 }:
 
 let
@@ -50,7 +50,7 @@ let
     jni_libs="$(nix build --no-link --print-out-paths .#android-jni-libs)"
     dart_api_manifest="$jni_libs/${manifestFile}"
 
-    target_dir="${flutterPackageDir}/android/src/main/jniLibs/${androidBuilder.abi}"
+    target_dir="${flutterBridgeDir}/android/src/main/jniLibs/${androidBuilder.abi}"
     if [ -e "$target_dir" ]; then
       chmod -R u+w "$target_dir"
       rm -rf "$target_dir"
@@ -146,7 +146,7 @@ let
         --spec "$dart_api_manifest" \
         --out "$dart_api_dir/${dartApiFile}"
       cp "$dart_api_dir/${dartApiFile}" \
-        "${flutterPackageDir}/lib/${dartApiFile}"
+        "${flutterBridgeDir}/lib/${dartApiFile}"
     '';
 in
 {

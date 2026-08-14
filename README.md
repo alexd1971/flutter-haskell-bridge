@@ -166,6 +166,31 @@ Template flake inputs are GitHub inputs:
 - `github:alexd1971/haskell-ffi-th`
 - `github:alexd1971/flutter-haskell-bridge`
 
+### Bridge configuration
+
+Most projects only need to edit a few values in the generated `flake.nix`:
+
+- `ffiLibraryName`: the public dynamic library name without `lib` prefix or
+  platform extension. For example, `my_bridge` becomes `libmy_bridge.so` on
+  Linux and Android.
+- `flutterBridgeDir`: path to the Flutter bridge package that receives native
+  libraries and the generated Dart API. In the app template this is
+  `flutter-haskell-bridge`; in the plugin template this is `flutter_plugin`.
+- `ffiPackageFile`: generated Nix expression for the Haskell FFI adapter
+  package.
+- `localPackages`: Haskell package overrides imported from
+  `haskell-packages.nix`.
+
+The following values have defaults and usually do not need to be set:
+
+- `manifestFile`: defaults to `ffi-manifest.json`. Change it only if the
+  Haskell FFI adapter writes the manifest under another name.
+- `dartApiFile`: defaults to `bridge.dart`. `bundle-libs` writes this file to
+  `${flutterBridgeDir}/lib/`.
+- `dartFfiGenerator`: defaults to the generator shipped by
+  `flutter-haskell-bridge`. Override it only when developing the generator
+  itself.
+
 ## Public API
 
 The flake exposes:

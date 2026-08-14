@@ -43,9 +43,8 @@
         let
           pkgs = importNixpkgs system;
           haskellPackages = import ./haskell-packages.nix;
-          manifestFile = "ffi-manifest.json";
           ffiLibraryName = "flutter_haskell_plugin";
-          flutterPackageDir = "flutter_plugin";
+          flutterBridgeDir = "flutter_plugin";
           ffiPackageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
           localPackages =
             {
@@ -57,7 +56,7 @@
           androidBuilder =
             import (flutter-haskell-bridge + /nix/flutter-android-builder.nix) {
               bridgeLib = flutter-haskell-bridge.lib.${system};
-              inherit ghcVersion ffiPackageFile manifestFile localPackages;
+              inherit ghcVersion ffiPackageFile localPackages;
               name = ffiLibraryName;
               inherit target;
               abi = androidAbi;
@@ -67,7 +66,7 @@
             import (flutter-haskell-bridge + /nix/flutter-native-builder.nix) {
               inherit pkgs;
               bridgeLib = flutter-haskell-bridge.lib.${system};
-              inherit ghcVersion ffiPackageFile manifestFile localPackages flutterPackageDir;
+              inherit ghcVersion ffiPackageFile localPackages flutterBridgeDir;
               name = ffiLibraryName;
               linkMode = nativeLinkMode;
             };
@@ -75,8 +74,7 @@
         import (flutter-haskell-bridge + /nix/flutter-artifacts.nix) {
           inherit pkgs androidBuilder nativeBuilder;
           inherit (haskellPackages) localHaskellPackages;
-          dartFfiGenerator = flutter-haskell-bridge.packages.${system}.dart-ffi-generator;
-          inherit ffiLibraryName flutterPackageDir manifestFile ffiPackageFile;
+          inherit ffiLibraryName flutterBridgeDir ffiPackageFile;
         };
     in
     {

@@ -1,7 +1,7 @@
 { bridgeLib
 , ghcVersion
 , ffiPackageFile
-, manifestFile
+, manifestFile ? "ffi-manifest.json"
 , localPackages
 , name
 , target

@@ -1,1 +1,1 @@
-export 'flutter_haskell_api.dart';
+export 'bridge.dart';

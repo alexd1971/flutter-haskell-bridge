@@ -2,10 +2,10 @@
 , bridgeLib
 , ghcVersion
 , ffiPackageFile
-, manifestFile
+, manifestFile ? "ffi-manifest.json"
 , localPackages
 , name
-, flutterPackageDir
+, flutterBridgeDir
 , linkMode
 }:
 
@@ -15,9 +15,9 @@
 let
   libDir =
     if pkgs.stdenv.hostPlatform.isDarwin then
-      "${flutterPackageDir}/macos/lib"
+      "${flutterBridgeDir}/macos/lib"
     else if pkgs.stdenv.hostPlatform.isLinux then
-      "${flutterPackageDir}/linux/lib"
+      "${flutterBridgeDir}/linux/lib"
     else
       throw "Unsupported native Flutter desktop system: ${pkgs.stdenv.hostPlatform.system}";
 in
