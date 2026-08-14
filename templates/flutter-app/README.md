@@ -113,3 +113,27 @@ flutter run -d linux
 `bundle-libs` copies generated runtime artifacts into `flutter-haskell-bridge/`.
 Commit those copied artifacts and the generated Dart API if the app should be
 buildable by ordinary Flutter tooling without Nix.
+
+## Release builds
+
+This template intentionally does not define final application outputs such as
+`nix build .#native`, `nix build .#android`, or `nix build .#web`.
+
+`bundle-libs` is responsible for the Flutter/Haskell bridge artifacts: native
+libraries, Android JNI libraries, and the generated Dart FFI API. Final Flutter
+application builds are delegated to Flutter tooling:
+
+```bash
+cd flutter-app
+flutter build linux
+flutter build apk
+```
+
+Add Nix application outputs in the downstream project once its release model is
+known:
+
+- Linux/native can use `buildFlutterApplication` from nixpkgs after the bridge
+  artifacts are bundled into the source tree used by the build.
+- Android needs a project-specific Flutter/Gradle build derivation.
+- Web requires a web-safe application API, usually an HTTP implementation
+  selected instead of the FFI implementation.
