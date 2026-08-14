@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_haskell_bridge/flutter_haskell_bridge.dart';
+import 'package:flutter_haskell_bridge/bridge.dart';
 
 void main() {
   runApp(const FlutterHaskellApp());
