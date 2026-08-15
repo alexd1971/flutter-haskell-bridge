@@ -61,12 +61,12 @@
       templates = {
         flutter-app = {
           path = ./templates/flutter-app;
-          description = "Flutter app scaffold with an embedded Haskell bridge plugin";
+          description = "Flutter app scaffold with an embedded Haskell FFI package";
         };
 
         flutter-plugin = {
           path = ./templates/flutter-plugin;
-          description = "Flutter plugin scaffold backed by a cross-compiled Haskell FFI library";
+          description = "Flutter FFI package scaffold backed by a cross-compiled Haskell FFI library";
         };
 
         default = self.templates.flutter-app;

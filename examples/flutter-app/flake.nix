@@ -1,5 +1,5 @@
 {
-  description = "Flutter app with an embedded Haskell-backed bridge plugin";
+  description = "Flutter app with an embedded Haskell-backed FFI package";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

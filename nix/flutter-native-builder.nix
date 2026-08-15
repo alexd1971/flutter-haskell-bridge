@@ -15,9 +15,9 @@
 let
   libDir =
     if pkgs.stdenv.hostPlatform.isDarwin then
-      "${flutterBridgeDir}/macos/lib"
+      "${flutterBridgeDir}/native_assets/macos"
     else if pkgs.stdenv.hostPlatform.isLinux then
-      "${flutterBridgeDir}/linux/lib"
+      "${flutterBridgeDir}/native_assets/linux"
     else
       throw "Unsupported native Flutter desktop system: ${pkgs.stdenv.hostPlatform.system}";
 in

@@ -1,23 +1,23 @@
-# Flutter Haskell Plugin Scaffold
+# Flutter Haskell FFI Package Scaffold
 
-This template is a starting point for a Flutter plugin backed by a
+This template is a starting point for a Flutter FFI package backed by a
 cross-compiled Haskell library.
 
-It is intended for a reusable Flutter plugin package. The local Haskell
-packages stay next to the plugin and `bundle-libs` copies generated native
-artifacts into the Flutter plugin layout.
+It is intended for a reusable Flutter FFI package. The local Haskell packages
+stay next to the package and `bundle-libs` copies generated native artifacts
+into the Flutter native assets layout.
 
 Layout:
 
 ```text
 haskell-lib/              Reusable Haskell domain library
-haskell-ffi/              Plugin FFI adapter and TH export declarations
-haskell-packages.nix      Plugin-specific Haskell package wiring
-flutter_plugin/           Flutter plugin package that owns the Dart API
+haskell-ffi/              Package FFI adapter and TH export declarations
+haskell-packages.nix      Package-specific Haskell package wiring
+flutter_plugin/           Flutter FFI package that owns the Dart API
 ```
 
 `haskell-lib/` is only the template's local example domain package. A real
-plugin can depend on any external Haskell library instead. Put plugin-specific
+package can depend on any external Haskell library instead. Put package-specific
 Haskell package wiring in `haskell-packages.nix`; the main `flake.nix` is
 intended to stay generic.
 
@@ -73,7 +73,7 @@ The normal edit/build loop is:
    exported symbols and generate the FFI manifest consumed by the Dart API
    generator.
 3. Run `nix run .#bundle-libs`.
-4. Run Flutter checks from `flutter_plugin/`.
+4. Run Flutter/Dart checks from `flutter_plugin/`.
 
 ### Build artifacts
 
@@ -89,7 +89,7 @@ Flutter-specific packaging in this project:
   the same wrapper from the native manifest while copying artifacts.
 - `apps.${system}.regen-haskell-nix`: regenerates Cabal-derived Nix expressions.
 - `apps.${system}.bundle-libs`: builds selected outputs and copies them into
-  the Flutter plugin layout. It runs `regen-haskell-nix` first and accepts
+  the Flutter FFI package layout. It runs `regen-haskell-nix` first and accepts
   `all`, `android`, or `native`; `all` is the default.
 
 The Nix package output keeps artifacts flat:
@@ -102,7 +102,7 @@ result/
     *.so or *.dylib
 ```
 
-Synchronize generated artifacts into the Flutter plugin:
+Synchronize generated artifacts into the Flutter FFI package:
 
 ```bash
 nix run .#bundle-libs
@@ -113,9 +113,9 @@ nix run .#bundle-libs -- native
 This command copies:
 
 - `arm64-v8a/*.so` to
-  `flutter_plugin/android/src/main/jniLibs/arm64-v8a/`;
-- native `.so`/`.dylib` files to `flutter_plugin/linux/lib/` or
-  `flutter_plugin/macos/lib/`;
+  `flutter_plugin/native_assets/android/arm64-v8a/`;
+- native `.so`/`.dylib` files to `flutter_plugin/native_assets/linux/` or
+  `flutter_plugin/native_assets/macos/`;
 - `bridge.dart` to `flutter_plugin/lib/` from the selected target manifest.
 
 `bundle-libs -- all` builds Android and native artifacts. The FFI manifest is
@@ -134,7 +134,7 @@ flutter analyze
 
 `bundle-libs` copies generated runtime artifacts into
 `flutter_plugin/`. Commit those copied artifacts and the generated Dart
-API if the plugin should be buildable by ordinary Flutter tooling without Nix.
+API if the package should be buildable by ordinary Flutter tooling without Nix.
 
 ## Release builds
 
@@ -143,7 +143,7 @@ This template intentionally does not define final application outputs such as
 
 `bundle-libs` is responsible for the Flutter/Haskell bridge artifacts: native
 libraries, Android JNI libraries, and the generated Dart FFI API. Final Flutter
-plugin checks and application release builds are delegated to Flutter tooling:
+package checks and application release builds are delegated to Flutter tooling:
 
 ```bash
 cd flutter_plugin

@@ -6,7 +6,7 @@ Layout:
 
 ```text
 flutter-app/              Flutter application
-flutter-haskell-bridge/   Flutter package with Dart FFI and Android JNI libraries
+flutter-haskell-bridge/   Flutter FFI package with Dart FFI and native assets
 haskell-packages.nix      Application-specific Haskell package wiring
 haskell-ffi/              Application FFI adapter and TH export declarations
   cbits/                  RTS initialization shim
@@ -32,7 +32,7 @@ on: `ffiAdapterPackage` describes `haskell-ffi/`, while
 - External package with a pre-generated Nix expression: add it to
   `ffiDependencyPackages` with `regenerate = false`.
 
-Bundle generated libraries into the Flutter layout:
+Bundle generated libraries into the Flutter FFI package layout:
 
 ```bash
 nix run .#bundle-libs
@@ -44,14 +44,16 @@ The optional argument is `all`, `android`, or `native`; `all` is the default.
 The command copies:
 
 - Haskell Android `.so` files into
-  `flutter-haskell-bridge/android/src/main/jniLibs/arm64-v8a/`;
+  `flutter-haskell-bridge/native_assets/android/arm64-v8a/`;
 - Haskell native desktop `.so`/`.dylib` files into
-  `flutter-haskell-bridge/linux/lib/` or `flutter-haskell-bridge/macos/lib/`,
-  depending on the current Nix system;
+  `flutter-haskell-bridge/native_assets/linux/` or
+  `flutter-haskell-bridge/native_assets/macos/`, depending on the current Nix
+  system;
 - Dart FFI API derived from the selected target's `haskell-ffi` export splice
   into `flutter-haskell-bridge/lib/`.
 
-The application depends on the embedded plugin through a local path dependency.
+The application depends on the embedded FFI package through a local path
+dependency.
 
 ## Local Example
 

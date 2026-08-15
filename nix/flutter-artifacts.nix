@@ -43,7 +43,7 @@ let
     jni_libs="$(nix build --no-link --print-out-paths .#android-jni-libs)"
     dart_api_manifest="$jni_libs/${manifestFile}"
 
-    target_dir="${flutterBridgeDir}/android/src/main/jniLibs/${androidBuilder.abi}"
+    target_dir="${flutterBridgeDir}/native_assets/android/${androidBuilder.abi}"
     if [ -e "$target_dir" ]; then
       chmod -R u+w "$target_dir"
       rm -rf "$target_dir"

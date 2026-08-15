@@ -7,8 +7,9 @@ This repository is intentionally separate from `template-haskell-cross`:
 
 - `template-haskell-cross` builds Haskell packages with Template Haskell under
   cross-GHC.
-- `flutter-haskell-bridge` packages those artifacts for Flutter plugins/apps and
-  owns Flutter-specific layout, RPATH rewriting, and Dart FFI API generation.
+- `flutter-haskell-bridge` packages those artifacts for Flutter FFI
+  packages/apps and owns Flutter-specific layout, RPATH rewriting, native asset
+  registration, and Dart FFI API generation.
 
 ## Usage Workflow
 
@@ -20,7 +21,7 @@ cd my-haskell-flutter-app
 nix flake init -t github:alexd1971/flutter-haskell-bridge#flutter-app
 ```
 
-Or create a reusable Flutter plugin:
+Or create a reusable Flutter FFI package:
 
 ```bash
 mkdir my-haskell-flutter-plugin
@@ -44,7 +45,7 @@ The normal downstream edit/build loop is:
    exported symbols and generate the FFI manifest consumed by the Dart API
    generator.
 3. Run `nix run .#bundle-libs`.
-4. Run the Flutter app or plugin checks.
+4. Run the Flutter app or package checks.
 
 ### Bundle artifacts
 
@@ -131,7 +132,7 @@ flutter pub get
 flutter run -d linux
 ```
 
-For a reusable plugin template, run Flutter commands inside the plugin package:
+For a reusable FFI package template, run Flutter commands inside the package:
 
 ```bash
 cd flutter_plugin
@@ -197,9 +198,10 @@ Most projects only need to edit a few values in the generated `flake.nix` and
 - `ffiLibraryName`: the public dynamic library name without `lib` prefix or
   platform extension. For example, `my_bridge` becomes `libmy_bridge.so` on
   Linux and Android.
-- `flutterBridgeDir`: path to the Flutter bridge package that receives native
-  libraries and the generated Dart API. In the app template this is
-  `flutter-haskell-bridge`; in the plugin template this is `flutter_plugin`.
+- `flutterBridgeDir`: path to the Flutter FFI bridge package that receives
+  native libraries and the generated Dart API. In the app template this is
+  `flutter-haskell-bridge`; in the reusable package template this is
+  `flutter_plugin`.
 - `ffiAdapterPackage`: Haskell FFI adapter package configuration in
   `haskell-packages.nix`.
 - `ffiDependencyPackages`: local or overridden Haskell dependencies of the FFI
@@ -237,7 +239,7 @@ The flake exposes:
 - `templates.flutter-app`: Flutter app scaffold with an embedded bridge package,
   app-specific `haskell-packages.nix`, example local `haskell-lib/` package,
   and local `haskell-ffi/` adapter package.
-- `templates.flutter-plugin`: standalone Flutter plugin scaffold with an
+- `templates.flutter-plugin`: standalone Flutter FFI package scaffold with an
   app-specific `haskell-packages.nix` and example local `haskell-lib/` package.
 
 The default template is `flutter-app`.

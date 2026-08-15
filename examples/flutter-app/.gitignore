@@ -4,3 +4,8 @@ build/
 dist-newstyle/
 result
 result-*
+flutter-haskell-bridge/android/app/
+flutter-haskell-bridge/android/local.properties
+flutter-haskell-bridge/linux/flutter/
+flutter-haskell-bridge/macos/Flutter/
+flutter-haskell-bridge/pubspec.lock

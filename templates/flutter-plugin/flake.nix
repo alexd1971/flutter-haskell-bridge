@@ -1,5 +1,5 @@
 {
-  description = "Flutter plugin backed by a cross-compiled Haskell FFI library";
+  description = "Flutter FFI package backed by a cross-compiled Haskell FFI library";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -107,14 +107,6 @@
 
               export ANDROID_HOME="${androidSdk.sdkRoot}"
               export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
-
-              cat > flutter_plugin/android/local.properties <<EOF
-              sdk.dir=${androidSdk.sdkRoot}
-              flutter.sdk=$flutter_sdk_path
-              flutter.buildMode=debug
-              flutter.versionName=1.0.0
-              flutter.versionCode=1
-              EOF
 
               cat <<EOF
               Flutter Haskell plugin shell

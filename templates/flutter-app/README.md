@@ -1,12 +1,11 @@
 # Flutter Haskell App Scaffold
 
 This template creates a Flutter application with an embedded Haskell-backed
-Flutter plugin.
+Flutter FFI package.
 
 It is intended to be used as a full application scaffold: the Flutter app
 depends on the local `flutter-haskell-bridge/` package, while
-`flutter-haskell-bridge/` owns Dart FFI bindings and platform-specific native
-library placement.
+`flutter-haskell-bridge/` owns Dart FFI bindings and native asset placement.
 
 Layout:
 
@@ -92,10 +91,11 @@ The command regenerates Cabal-derived Nix expressions, builds selected
 artifacts, and copies:
 
 - Haskell Android `.so` files into
-  `flutter-haskell-bridge/android/src/main/jniLibs/arm64-v8a/`;
+  `flutter-haskell-bridge/native_assets/android/arm64-v8a/`;
 - Haskell native desktop `.so`/`.dylib` files into
-  `flutter-haskell-bridge/linux/lib/` or `flutter-haskell-bridge/macos/lib/`,
-  depending on the current Nix system;
+  `flutter-haskell-bridge/native_assets/linux/` or
+  `flutter-haskell-bridge/native_assets/macos/`, depending on the current Nix
+  system;
 - one generated Dart FFI API into `flutter-haskell-bridge/lib/` from the
   selected target manifest.
 
@@ -110,7 +110,8 @@ To regenerate only the Cabal-derived Nix expressions:
 nix run .#regen-haskell-nix
 ```
 
-The application depends on the embedded plugin through a local path dependency.
+The application depends on the embedded FFI package through a local path
+dependency.
 
 ## Run Android
 

@@ -1,5 +1,5 @@
 name: flutter_haskell_app
-description: Flutter application with an embedded Haskell bridge plugin.
+description: Flutter application with an embedded Haskell FFI package.
 version: 0.1.0
 publish_to: none
 
