@@ -19,13 +19,18 @@ This example keeps the domain code in local `haskell-lib/` and wires it through
 library instead. The `haskell-ffi/` adapter uses `haskell-ffi-th` to declare
 exported symbols and produce the FFI manifest used for Dart API generation.
 
+`haskell-packages.nix` separates the FFI adapter from the packages it depends
+on: `ffiAdapterPackage` describes `haskell-ffi/`, while
+`ffiDependencyPackages` describes local or overridden dependencies such as
+`haskell-lib`.
+
 `haskell-ffi/` can depend on Haskell libraries in three common ways:
 
 - Hackage/package-set dependency: add it only to `haskell-ffi.cabal`.
-- Local package: add it to `haskell-packages.nix` with a generated
+- Local package: add it to `ffiDependencyPackages` with a generated
   `packageFile`; this example uses that for `haskell-lib`.
 - External package with a pre-generated Nix expression: add it to
-  `haskell-packages.nix` with `regenerate = false`.
+  `ffiDependencyPackages` with `regenerate = false`.
 
 Bundle generated libraries into the Flutter layout:
 

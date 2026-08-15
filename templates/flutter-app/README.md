@@ -23,6 +23,25 @@ application can depend on any external Haskell library instead. Put
 application-specific Haskell package wiring in `haskell-packages.nix`; the main
 `flake.nix` is intended to stay generic.
 
+`haskell-packages.nix` separates the FFI adapter from the packages it depends
+on:
+
+```nix
+{
+  ffiAdapterPackage = {
+    packageDir = "haskell-ffi";
+    packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+  };
+
+  ffiDependencyPackages = {
+    haskell-lib = {
+      packageDir = "haskell-lib";
+      packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
+    };
+  };
+}
+```
+
 ### Haskell library dependencies
 
 The `haskell-ffi/` package is the FFI adapter. It can depend on Haskell domain
@@ -31,13 +50,13 @@ libraries in several ways:
 - Hackage/package-set dependency: add it only to `haskell-ffi.cabal`. No
   `haskell-packages.nix` entry is needed if the selected GHC package set already
   provides it.
-- Local package: add it to `haskell-packages.nix` with a generated
-  `packageFile`. The attribute name must match the cabal dependency name. For
+- Local package: add it to `ffiDependencyPackages` with a generated
+  `packageFile`. The attribute name must match the Cabal dependency name. For
   example, the template's `haskell-lib` entry points to
   `./haskell-lib/nix/generated/haskell-lib.nix`.
 - External package with a pre-generated Nix expression: add it to
-  `haskell-packages.nix` with `regenerate = false`, so `regen-haskell-nix` does
-  not try to run `cabal2nix` on a local directory.
+  `ffiDependencyPackages` with `regenerate = false`, so `regen-haskell-nix`
+  does not try to run `cabal2nix` on a local directory.
 
 ## Usage Workflow
 

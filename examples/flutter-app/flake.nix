@@ -41,14 +41,15 @@
           haskellPackages = import ./haskell-packages.nix;
           ffiLibraryName = "flutter_haskell_app";
           flutterBridgeDir = "flutter-haskell-bridge";
-          ffiPackageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+          ffiPackageDir = haskellPackages.ffiAdapterPackage.packageDir;
+          ffiPackageFile = haskellPackages.ffiAdapterPackage.packageFile;
           localPackages =
             {
               haskell-ffi-th = {
                 packageFile = haskell-ffi-th + /nix/generated/haskell-ffi-th.nix;
               };
             }
-            // haskellPackages.localHaskellPackages;
+            // haskellPackages.ffiDependencyPackages;
           androidBuilder = import ../../nix/flutter-android-builder.nix {
             bridgeLib = bridge;
             inherit ghcVersion ffiPackageFile localPackages;
@@ -66,8 +67,8 @@
         in
         import ../../nix/flutter-artifacts.nix {
           inherit pkgs androidBuilder nativeBuilder;
-          inherit (haskellPackages) localHaskellPackages;
-          inherit ffiLibraryName flutterBridgeDir ffiPackageFile;
+          inherit ffiLibraryName flutterBridgeDir ffiPackageDir ffiPackageFile;
+          inherit (haskellPackages) ffiDependencyPackages;
         };
     in
     {

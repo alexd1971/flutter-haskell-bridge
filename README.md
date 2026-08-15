@@ -145,17 +145,40 @@ commit those copied artifacts together with the generated Dart API.
 
 ### Haskell library dependencies
 
-The `haskell-ffi/` package is the FFI adapter. It can depend on Haskell domain
-libraries in several ways:
+The `haskell-ffi/` package is the FFI adapter. It is configured separately from
+the Haskell packages it depends on:
+
+```nix
+{
+  ffiAdapterPackage = {
+    packageDir = "haskell-ffi";
+    packageFile = ./haskell-ffi/nix/generated/haskell-ffi.nix;
+  };
+
+  ffiDependencyPackages = {
+    haskell-lib = {
+      packageDir = "haskell-lib";
+      packageFile = ./haskell-lib/nix/generated/haskell-lib.nix;
+    };
+  };
+}
+```
+
+`ffiAdapterPackage` is the root package built as the native bridge library.
+`ffiDependencyPackages` contains local or overridden Haskell packages required
+by that adapter. Attribute names in `ffiDependencyPackages` must match Cabal
+dependency names.
+
+The FFI adapter can depend on Haskell domain libraries in several ways:
 
 - Hackage/package-set dependency: add it only to `haskell-ffi.cabal`. No
   `haskell-packages.nix` entry is needed if the selected GHC package set already
   provides it.
-- Local package: add it to `haskell-packages.nix` with a generated
-  `packageFile`. The attribute name must match the cabal dependency name.
+- Local package: add it to `ffiDependencyPackages` with a generated
+  `packageFile`.
 - External package with a pre-generated Nix expression: add it to
-  `haskell-packages.nix` with `regenerate = false`, so `regen-haskell-nix` does
-  not try to run `cabal2nix` on a local directory.
+  `ffiDependencyPackages` with `regenerate = false`, so `regen-haskell-nix`
+  does not try to run `cabal2nix` on a local directory.
 
 The templates include `haskell-lib/` only as a local example.
 
@@ -168,7 +191,8 @@ Template flake inputs are GitHub inputs:
 
 ### Bridge configuration
 
-Most projects only need to edit a few values in the generated `flake.nix`:
+Most projects only need to edit a few values in the generated `flake.nix` and
+`haskell-packages.nix`:
 
 - `ffiLibraryName`: the public dynamic library name without `lib` prefix or
   platform extension. For example, `my_bridge` becomes `libmy_bridge.so` on
@@ -176,10 +200,10 @@ Most projects only need to edit a few values in the generated `flake.nix`:
 - `flutterBridgeDir`: path to the Flutter bridge package that receives native
   libraries and the generated Dart API. In the app template this is
   `flutter-haskell-bridge`; in the plugin template this is `flutter_plugin`.
-- `ffiPackageFile`: generated Nix expression for the Haskell FFI adapter
-  package.
-- `localPackages`: Haskell package overrides imported from
+- `ffiAdapterPackage`: Haskell FFI adapter package configuration in
   `haskell-packages.nix`.
+- `ffiDependencyPackages`: local or overridden Haskell dependencies of the FFI
+  adapter, also configured in `haskell-packages.nix`.
 
 The following values have defaults and usually do not need to be set:
 
