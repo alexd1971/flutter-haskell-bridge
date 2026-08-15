@@ -24,9 +24,9 @@ nix flake init -t github:alexd1971/flutter-haskell-bridge#flutter-app
 Or create a reusable Flutter FFI package:
 
 ```bash
-mkdir my-haskell-flutter-plugin
-cd my-haskell-flutter-plugin
-nix flake init -t github:alexd1971/flutter-haskell-bridge#flutter-plugin
+mkdir my-haskell-flutter-ffi-package
+cd my-haskell-flutter-ffi-package
+nix flake init -t github:alexd1971/flutter-haskell-bridge#flutter-ffi-package
 ```
 
 Enter the Nix development shell before running Flutter or artifact commands:
@@ -135,7 +135,7 @@ flutter run -d linux
 For a reusable FFI package template, run Flutter commands inside the package:
 
 ```bash
-cd flutter_plugin
+cd flutter_ffi_package
 flutter pub get
 flutter analyze
 ```
@@ -201,7 +201,7 @@ Most projects only need to edit a few values in the generated `flake.nix` and
 - `flutterBridgeDir`: path to the Flutter FFI bridge package that receives
   native libraries and the generated Dart API. In the app template this is
   `flutter-haskell-bridge`; in the reusable package template this is
-  `flutter_plugin`.
+  `flutter_ffi_package`.
 - `ffiAdapterPackage`: Haskell FFI adapter package configuration in
   `haskell-packages.nix`.
 - `ffiDependencyPackages`: local or overridden Haskell dependencies of the FFI
@@ -239,7 +239,7 @@ The flake exposes:
 - `templates.flutter-app`: Flutter app scaffold with an embedded bridge package,
   app-specific `haskell-packages.nix`, example local `haskell-lib/` package,
   and local `haskell-ffi/` adapter package.
-- `templates.flutter-plugin`: standalone Flutter FFI package scaffold with an
+- `templates.flutter-ffi-package`: standalone Flutter FFI package scaffold with an
   app-specific `haskell-packages.nix` and example local `haskell-lib/` package.
 
 The default template is `flutter-app`.
@@ -266,5 +266,5 @@ nix eval \
   --override-input flutter-haskell-bridge path:/path/to/flutter-haskell-bridge \
   --override-input flutter-haskell-bridge/th-cross path:/path/to/template-haskell-cross \
   --override-input haskell-ffi-th path:/path/to/haskell-ffi-th \
-  ./templates/flutter-plugin#packages.x86_64-linux.dart-api.name
+  ./templates/flutter-ffi-package#packages.x86_64-linux.dart-api.name
 ```

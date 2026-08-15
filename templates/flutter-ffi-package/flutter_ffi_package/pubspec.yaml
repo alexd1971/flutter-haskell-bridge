@@ -1,4 +1,4 @@
-name: flutter_haskell_plugin
+name: flutter_haskell_ffi_package
 description: Flutter FFI package backed by a cross-compiled Haskell library.
 version: 0.1.0
 publish_to: none

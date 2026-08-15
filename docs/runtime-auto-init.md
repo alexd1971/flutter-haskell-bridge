@@ -26,7 +26,7 @@ The `runtimeInitSymbol` field of the FFI manifest defaults to `haskell_init`
 
 Each consumer package owns a `cbits/haskell_runtime.c` shim that calls
 `hs_init` and declares it via `c-sources` in the `.cabal` file. The templates
-(`templates/flutter-app/`, `templates/flutter-plugin/`) ship this file out of
+(`templates/flutter-app/`, `templates/flutter-ffi-package/`) ship this file out of
 the box; consumers created from a template do not need to add anything.
 
 A hand-built consumer that omits the shim will crash at runtime with

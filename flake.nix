@@ -64,8 +64,8 @@
           description = "Flutter app scaffold with an embedded Haskell FFI package";
         };
 
-        flutter-plugin = {
-          path = ./templates/flutter-plugin;
+        flutter-ffi-package = {
+          path = ./templates/flutter-ffi-package;
           description = "Flutter FFI package scaffold backed by a cross-compiled Haskell FFI library";
         };
 

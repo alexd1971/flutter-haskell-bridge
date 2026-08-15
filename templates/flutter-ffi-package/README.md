@@ -13,7 +13,7 @@ Layout:
 haskell-lib/              Reusable Haskell domain library
 haskell-ffi/              Package FFI adapter and TH export declarations
 haskell-packages.nix      Package-specific Haskell package wiring
-flutter_plugin/           Flutter FFI package that owns the Dart API
+flutter_ffi_package/      Flutter FFI package that owns the Dart API
 ```
 
 `haskell-lib/` is only the template's local example domain package. A real
@@ -73,7 +73,7 @@ The normal edit/build loop is:
    exported symbols and generate the FFI manifest consumed by the Dart API
    generator.
 3. Run `nix run .#bundle-libs`.
-4. Run Flutter/Dart checks from `flutter_plugin/`.
+4. Run Flutter/Dart checks from `flutter_ffi_package/`.
 
 ### Build artifacts
 
@@ -113,10 +113,10 @@ nix run .#bundle-libs -- native
 This command copies:
 
 - `arm64-v8a/*.so` to
-  `flutter_plugin/native_assets/android/arm64-v8a/`;
-- native `.so`/`.dylib` files to `flutter_plugin/native_assets/linux/` or
-  `flutter_plugin/native_assets/macos/`;
-- `bridge.dart` to `flutter_plugin/lib/` from the selected target manifest.
+  `flutter_ffi_package/native_assets/android/arm64-v8a/`;
+- native `.so`/`.dylib` files to `flutter_ffi_package/native_assets/linux/` or
+  `flutter_ffi_package/native_assets/macos/`;
+- `bridge.dart` to `flutter_ffi_package/lib/` from the selected target manifest.
 
 `bundle-libs -- all` builds Android and native artifacts. The FFI manifest is
 generated once per target build, but the Dart API file is written only once.
@@ -127,13 +127,13 @@ target-specific.
 
 ```bash
 nix run .#bundle-libs
-cd flutter_plugin
+cd flutter_ffi_package
 flutter pub get
 flutter analyze
 ```
 
 `bundle-libs` copies generated runtime artifacts into
-`flutter_plugin/`. Commit those copied artifacts and the generated Dart
+`flutter_ffi_package/`. Commit those copied artifacts and the generated Dart
 API if the package should be buildable by ordinary Flutter tooling without Nix.
 
 ## Release builds
@@ -146,7 +146,7 @@ libraries, Android JNI libraries, and the generated Dart FFI API. Final Flutter
 package checks and application release builds are delegated to Flutter tooling:
 
 ```bash
-cd flutter_plugin
+cd flutter_ffi_package
 flutter analyze
 ```
 

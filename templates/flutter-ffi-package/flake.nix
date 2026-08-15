@@ -43,8 +43,8 @@
         let
           pkgs = importNixpkgs system;
           haskellPackages = import ./haskell-packages.nix;
-          ffiLibraryName = "flutter_haskell_plugin";
-          flutterBridgeDir = "flutter_plugin";
+          ffiLibraryName = "flutter_haskell_ffi_package";
+          flutterBridgeDir = "flutter_ffi_package";
           ffiPackageDir = haskellPackages.ffiAdapterPackage.packageDir;
           ffiPackageFile = haskellPackages.ffiAdapterPackage.packageFile;
           localPackages =
@@ -109,12 +109,12 @@
               export ANDROID_SDK_ROOT="${androidSdk.sdkRoot}"
 
               cat <<EOF
-              Flutter Haskell plugin shell
+              Flutter Haskell FFI package shell
 
               Common commands:
                 nix run .#regen-haskell-nix
                 nix run .#bundle-libs
-                cd flutter_plugin
+                cd flutter_ffi_package
                 flutter pub get
 
               Flutter SDK:  $flutter_sdk_path
