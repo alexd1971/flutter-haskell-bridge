@@ -6,8 +6,7 @@ import 'dart:io' as io;
 
 class HaskellApi {
   HaskellApi([String? libraryPath])
-      : _library =
-            ffi.DynamicLibrary.open(libraryPath ?? _defaultLibraryPath()) {
+    : _library = ffi.DynamicLibrary.open(libraryPath ?? _defaultLibraryPath()) {
     _initializeRuntime();
   }
 
@@ -26,9 +25,11 @@ class HaskellApi {
   late final _initializeRuntime = _library
       .lookupFunction<ffi.Void Function(), void Function()>('haskell_init');
 
-  late final _addInt32 = _library.lookupFunction<
-      ffi.Int32 Function(ffi.Int32, ffi.Int32),
-      int Function(int, int)>('haskell_add_int32');
+  late final _addInt32 = _library
+      .lookupFunction<
+        ffi.Int32 Function(ffi.Int32, ffi.Int32),
+        int Function(int, int)
+      >('haskell_add_int32');
 
   int addInt32(int arg0, int arg1) {
     return _addInt32(arg0, arg1);
